@@ -19,10 +19,10 @@ impl Chain {
 
   pub(crate) fn default_rpc_port(self) -> u16 {
     match self {
-      Self::Mainnet => 8332,
-      Self::Regtest => 18443,
-      Self::Signet => 38332,
-      Self::Testnet => 18332,
+      Self::Mainnet => 19918,
+      Self::Regtest => 19918,
+      Self::Signet => 19918,
+      Self::Testnet => 19918,
     }
   }
 
@@ -35,10 +35,10 @@ impl Chain {
 
   pub(crate) fn first_inscription_height(self) -> u32 {
     match self {
-      Self::Mainnet => 767430,
+      Self::Mainnet => 188000,
       Self::Regtest => 0,
-      Self::Signet => 112402,
-      Self::Testnet => 2413343,
+      Self::Signet => 0,
+      Self::Testnet => 0,
     }
   }
 
@@ -56,7 +56,7 @@ impl Chain {
   }
 
   pub(crate) fn genesis_block(self) -> Block {
-    bitcoin::blockdata::constants::genesis_block(self.network())
+    bellscoin::blockdata::constants::genesis_block(self.network())
   }
 
   pub(crate) fn genesis_coinbase_outpoint(self) -> OutPoint {
@@ -66,7 +66,7 @@ impl Chain {
     }
   }
 
-  pub(crate) fn address_from_script(self, script: &Script) -> Result<Address, SnafuError> {
+  pub(crate) fn address_from_script(self, script: &ScriptBuf) -> Result<Address, SnafuError> {
     Address::from_script(script, self.network()).snafu_context(error::AddressConversion)
   }
 
@@ -83,7 +83,7 @@ impl Chain {
 impl From<Chain> for Network {
   fn from(chain: Chain) -> Network {
     match chain {
-      Chain::Mainnet => Network::Bitcoin,
+      Chain::Mainnet => Network::Bellscoin,
       Chain::Testnet => Network::Testnet,
       Chain::Signet => Network::Signet,
       Chain::Regtest => Network::Regtest,

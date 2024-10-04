@@ -1,7 +1,7 @@
 use {
   super::*,
   axum_server::Handle,
-  bitcoincore_rpc::{Auth, Client, RpcApi},
+  bellscoincore_rpc::{Auth, Client, RpcApi},
   ord::{parse_ord_server_args, Index},
   reqwest::blocking::Response,
 };

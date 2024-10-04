@@ -1,7 +1,7 @@
 #![no_main]
 
 use {
-  bitcoin::{
+  bellscoin::{
     locktime, opcodes,
     script::{self, PushBytes},
     Transaction, TxOut,

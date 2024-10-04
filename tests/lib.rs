@@ -2,7 +2,7 @@
 
 use {
   self::{command_builder::CommandBuilder, expected::Expected, test_server::TestServer},
-  bitcoin::{
+  bellscoin::{
     address::{Address, NetworkUnchecked},
     blockdata::constants::COIN_VALUE,
     Network, OutPoint, Sequence, Txid, Witness,
@@ -418,18 +418,18 @@ fn batch(core: &mockcore::Handle, ord: &TestServer, batchfile: batch::File) -> E
 }
 
 fn envelope(payload: &[&[u8]]) -> Witness {
-  let mut builder = bitcoin::script::Builder::new()
-    .push_opcode(bitcoin::opcodes::OP_FALSE)
-    .push_opcode(bitcoin::opcodes::all::OP_IF);
+  let mut builder = bellscoin::script::Builder::new()
+    .push_opcode(bellscoin::opcodes::OP_FALSE)
+    .push_opcode(bellscoin::opcodes::all::OP_IF);
 
   for data in payload {
-    let mut buf = bitcoin::script::PushBytesBuf::new();
+    let mut buf = bellscoin::script::PushBytesBuf::new();
     buf.extend_from_slice(data).unwrap();
     builder = builder.push_slice(buf);
   }
 
   let script = builder
-    .push_opcode(bitcoin::opcodes::all::OP_ENDIF)
+    .push_opcode(bellscoin::opcodes::all::OP_ENDIF)
     .into_script();
 
   Witness::from_slice(&[script.into_bytes(), Vec::new()])

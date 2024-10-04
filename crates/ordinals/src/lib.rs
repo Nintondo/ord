@@ -2,7 +2,7 @@
 #![allow(clippy::large_enum_variant)]
 
 use {
-  bitcoin::{
+  bellscoin::{
     consensus::{Decodable, Encodable},
     constants::{
       COIN_VALUE, DIFFCHANGE_INTERVAL, MAX_SCRIPT_ELEMENT_SIZE, SUBSIDY_HALVING_INTERVAL,

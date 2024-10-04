@@ -1,4 +1,4 @@
-use {super::*, bitcoin::script::PushBytes, std::ffi::OsString, tempfile::TempDir};
+use {super::*, bellscoin::script::PushBytes, std::ffi::OsString, tempfile::TempDir};
 
 pub(crate) struct ContextBuilder {
   args: Vec<OsString>,

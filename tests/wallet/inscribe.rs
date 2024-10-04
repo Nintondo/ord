@@ -163,7 +163,7 @@ fn regtest_has_no_content_size_limit() {
 
 #[test]
 fn mainnet_has_no_content_size_limit() {
-  let core = mockcore::builder().network(Network::Bitcoin).build();
+  let core = mockcore::builder().network(Network::Bellscoin).build();
 
   let ord = TestServer::spawn(&core);
 

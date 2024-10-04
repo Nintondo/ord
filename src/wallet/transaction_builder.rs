@@ -93,8 +93,8 @@ impl Display for Error {
 
 impl std::error::Error for Error {}
 
-impl From<bitcoin::address::Error> for Error {
-  fn from(_: bitcoin::address::Error) -> Self {
+impl From<bellscoin::address::Error> for Error {
+  fn from(_: bellscoin::address::Error) -> Self {
     Self::InvalidAddress
   }
 }
@@ -163,7 +163,7 @@ impl TransactionBuilder {
     }
 
     if !self.recipient.is_op_return() {
-      let recipient_as_address = Address::from_script(self.recipient.as_script(), self.network)?;
+      let recipient_as_address = Address::from_script(&self.recipient, self.network)?;
 
       if self.change_addresses.contains(&recipient_as_address) {
         return Err(Error::DuplicateAddress(recipient_as_address));

@@ -1,7 +1,7 @@
 use {
   super::*,
   anyhow::ensure,
-  bitcoin::blockdata::opcodes,
+  bellscoin::blockdata::opcodes,
   brotli::enc::{writer::CompressorWriter, BrotliEncoderParams},
   http::header::HeaderValue,
   io::Write,

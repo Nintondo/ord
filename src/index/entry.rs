@@ -8,7 +8,7 @@ pub(crate) trait Entry: Sized {
   fn store(self) -> Self::Value;
 }
 
-pub(super) type HeaderValue = [u8; 80];
+pub(super) type HeaderValue = Vec<u8>;
 
 impl Entry for Header {
   type Value = HeaderValue;
@@ -18,7 +18,7 @@ impl Entry for Header {
   }
 
   fn store(self) -> Self::Value {
-    let mut buffer = Cursor::new([0; 80]);
+    let mut buffer = Cursor::new(vec![]);
     let len = self
       .consensus_encode(&mut buffer)
       .expect("in-memory writers don't error");
@@ -621,14 +621,14 @@ mod tests {
 
   #[test]
   fn header() {
-    let expected = [
+    let expected = vec![
       0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25,
       26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
       49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71,
       72, 73, 74, 75, 76, 77, 78, 79,
     ];
 
-    let header = Header::load(expected);
+    let header = Header::load(expected.clone());
     let actual = header.store();
 
     assert_eq!(actual, expected);

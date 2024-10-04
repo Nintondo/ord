@@ -30,8 +30,7 @@ use {
     tally::Tally,
   },
   anyhow::{anyhow, bail, ensure, Context, Error},
-  bip39::Mnemonic,
-  bitcoin::{
+  bellscoin::{
     address::{Address, NetworkUnchecked},
     blockdata::{
       constants::{DIFFCHANGE_INTERVAL, MAX_SCRIPT_ELEMENT_SIZE, SUBSIDY_HALVING_INTERVAL},
@@ -43,7 +42,8 @@ use {
     script, Amount, Block, Network, OutPoint, Script, ScriptBuf, Sequence, Transaction, TxIn,
     TxOut, Txid, Witness,
   },
-  bitcoincore_rpc::{Client, RpcApi},
+  bellscoincore_rpc::{Client, RpcApi},
+  bip39::Mnemonic,
   chrono::{DateTime, TimeZone, Utc},
   ciborium::Value,
   clap::{ArgGroup, Parser},
@@ -156,7 +156,7 @@ fn fund_raw_transaction(
     client
       .fund_raw_transaction(
         &buffer,
-        Some(&bitcoincore_rpc::json::FundRawTransactionOptions {
+        Some(&bellscoincore_rpc::json::FundRawTransactionOptions {
           // NB. This is `fundrawtransaction`'s `feeRate`, which is fee per kvB
           // and *not* fee per vB. So, we multiply the fee rate given by the user
           // by 1000.
@@ -169,8 +169,8 @@ fn fund_raw_transaction(
       .map_err(|err| {
         if matches!(
           err,
-          bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(
-            bitcoincore_rpc::jsonrpc::error::RpcError { code: -6, .. }
+          bellscoincore_rpc::Error::JsonRpc(bellscoincore_rpc::jsonrpc::Error::Rpc(
+            bellscoincore_rpc::jsonrpc::error::RpcError { code: -6, .. }
           ))
         ) {
           anyhow!("not enough cardinal utxos")
@@ -188,7 +188,7 @@ pub fn timestamp(seconds: u64) -> DateTime<Utc> {
     .unwrap()
 }
 
-fn target_as_block_hash(target: bitcoin::Target) -> BlockHash {
+fn target_as_block_hash(target: bellscoin::Target) -> BlockHash {
   BlockHash::from_raw_hash(Hash::from_byte_array(target.to_le_bytes()))
 }
 

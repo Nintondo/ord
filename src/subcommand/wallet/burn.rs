@@ -1,4 +1,4 @@
-use {super::*, crate::outgoing::Outgoing, bitcoin::opcodes};
+use {super::*, crate::outgoing::Outgoing, bellscoin::opcodes};
 
 const MAX_BURN_SATS: u64 = 10000;
 

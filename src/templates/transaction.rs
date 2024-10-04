@@ -17,7 +17,7 @@ impl PageContent for TransactionHtml {
 
 #[cfg(test)]
 mod tests {
-  use {super::*, bitcoin::blockdata::script};
+  use {super::*, bellscoin::blockdata::script};
 
   #[test]
   fn html() {

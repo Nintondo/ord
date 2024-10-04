@@ -16,7 +16,7 @@ impl PageContent for InputHtml {
 mod tests {
   use {
     super::*,
-    bitcoin::{blockdata::script, Witness},
+    bellscoin::{blockdata::script, Witness},
   };
 
   #[test]

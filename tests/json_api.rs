@@ -1,6 +1,6 @@
 use {
   super::*,
-  bitcoin::{BlockHash, ScriptBuf},
+  bellscoin::{BlockHash, ScriptBuf},
   ord::{Envelope, Inscription},
 };
 

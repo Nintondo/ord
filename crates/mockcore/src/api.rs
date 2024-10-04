@@ -136,7 +136,7 @@ pub trait Api {
   #[rpc(name = "getrawchangeaddress")]
   fn get_raw_change_address(
     &self,
-    address_type: Option<bitcoincore_rpc::json::AddressType>,
+    address_type: Option<bellscoincore_rpc::json::AddressType>,
   ) -> Result<Address, jsonrpc_core::Error>;
 
   #[rpc(name = "getdescriptorinfo")]
@@ -155,7 +155,7 @@ pub trait Api {
   fn get_new_address(
     &self,
     label: Option<String>,
-    address_type: Option<bitcoincore_rpc::json::AddressType>,
+    address_type: Option<bellscoincore_rpc::json::AddressType>,
   ) -> Result<Address, jsonrpc_core::Error>;
 
   #[rpc(name = "listtransactions")]

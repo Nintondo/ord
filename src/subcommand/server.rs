@@ -88,7 +88,7 @@ pub struct Server {
   pub(crate) disable_json_api: bool,
   #[arg(
     long,
-    help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 80]"
+    help = "Listen on <HTTP_PORT> for incoming HTTP requests. [default: 3333]"
   )]
   pub(crate) http_port: Option<u16>,
   #[arg(
@@ -433,7 +433,7 @@ impl Server {
 
   fn http_port(&self) -> Option<u16> {
     if self.http || self.http_port.is_some() || (self.https_port.is_none() && !self.https) {
-      Some(self.http_port.unwrap_or(80))
+      Some(self.http_port.unwrap_or(3333))
     } else {
       None
     }

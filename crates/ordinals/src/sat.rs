@@ -164,17 +164,11 @@ impl Sat {
 
     let cycle_start_epoch = cycle_number * CYCLE_EPOCHS;
 
-    const HALVING_INCREMENT: u32 = SUBSIDY_HALVING_INTERVAL % DIFFCHANGE_INTERVAL;
-
     // For valid degrees the relationship between epoch_offset and period_offset
     // will increment by 336 every halving.
     let relationship = period_offset + SUBSIDY_HALVING_INTERVAL * CYCLE_EPOCHS - epoch_offset;
 
-    if relationship % HALVING_INCREMENT != 0 {
-      return Err(ErrorKind::EpochPeriodMismatch.error(degree));
-    }
-
-    let epochs_since_cycle_start = relationship % DIFFCHANGE_INTERVAL / HALVING_INCREMENT;
+    let epochs_since_cycle_start = relationship % DIFFCHANGE_INTERVAL;
 
     let epoch = cycle_start_epoch + epochs_since_cycle_start;
 

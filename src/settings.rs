@@ -1,4 +1,4 @@
-use {super::*, bitcoincore_rpc::Auth};
+use {super::*, bellscoincore_rpc::Auth};
 
 #[derive(Default, Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(default, deny_unknown_fields)]
@@ -306,7 +306,7 @@ impl Settings {
         if cfg!(target_os = "linux") {
           dirs::home_dir()
             .ok_or_else(|| anyhow!("failed to get cookie file path: could not get home dir"))?
-            .join(".bitcoin")
+            .join(".bells")
         } else {
           dirs::data_dir()
             .ok_or_else(|| anyhow!("failed to get cookie file path: could not get data dir"))?
@@ -437,7 +437,7 @@ impl Settings {
             other => bail!("Bitcoin RPC server on unknown chain: {other}"),
           }
         }
-        Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::Error::Rpc(err)))
+        Err(bellscoincore_rpc::Error::JsonRpc(bellscoincore_rpc::jsonrpc::Error::Rpc(err)))
           if err.code == -28 => {}
         Err(err) => bail!("Failed to connect to Bitcoin Core RPC at `{rpc_url}`:  {err}"),
       }
@@ -478,7 +478,7 @@ impl Settings {
     } else if cfg!(target_os = "linux") {
       dirs::home_dir()
         .ok_or_else(|| anyhow!("failed to get cookie file path: could not get home dir"))?
-        .join(".bitcoin")
+        .join(".bells")
     } else {
       dirs::data_dir()
         .ok_or_else(|| anyhow!("failed to get cookie file path: could not get data dir"))?
@@ -737,7 +737,7 @@ mod tests {
     let cookie_file = parse(&[]).cookie_file().unwrap().display().to_string();
 
     assert!(cookie_file.ends_with(if cfg!(target_os = "linux") {
-      "/.bitcoin/.cookie"
+      "/.bells/.cookie"
     } else if cfg!(windows) {
       r"\Bitcoin\.cookie"
     } else {
@@ -754,7 +754,7 @@ mod tests {
       .to_string();
 
     assert!(cookie_file.ends_with(if cfg!(target_os = "linux") {
-      "/.bitcoin/signet/.cookie"
+      "/.bells/signet/.cookie"
     } else if cfg!(windows) {
       r"\Bitcoin\signet\.cookie"
     } else {

@@ -16,5 +16,5 @@ fn receive() {
     .addresses
     .first()
     .unwrap()
-    .is_valid_for_network(Network::Bitcoin));
+    .is_valid_for_network(Network::Bellscoin));
 }

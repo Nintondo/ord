@@ -26,7 +26,7 @@ impl FromStr for Object {
         input.parse().snafu_context(error::SatParse { input })?,
       )),
       Hash => Ok(Self::Hash(
-        bitcoin::hashes::sha256::Hash::from_str(input)
+        bellscoin::hashes::sha256::Hash::from_str(input)
           .snafu_context(error::HashParse { input })?
           .to_byte_array(),
       )),

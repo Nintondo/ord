@@ -9,7 +9,7 @@ impl From<InscriptionId> for Ethereum {
     let (txid, index) = array.split_at_mut(32);
     txid.copy_from_slice(inscription_id.txid.as_ref());
     index.copy_from_slice(&inscription_id.index.to_be_bytes());
-    let digest = bitcoin::hashes::sha256::Hash::hash(&array);
+    let digest = bellscoin::hashes::sha256::Hash::hash(&array);
     Self(create_address_with_checksum(&hex::encode(&digest[0..20])))
   }
 }

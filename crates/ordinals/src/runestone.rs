@@ -251,7 +251,7 @@ impl Runestone {
 mod tests {
   use {
     super::*,
-    bitcoin::{
+    bellscoin::{
       blockdata::locktime::absolute::LockTime, script::PushBytes, Sequence, TxIn, TxOut, Witness,
     },
     pretty_assertions::assert_eq,

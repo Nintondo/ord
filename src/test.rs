@@ -1,6 +1,6 @@
 pub(crate) use {
   super::*,
-  bitcoin::{
+  bellscoin::{
     blockdata::script::{PushBytes, PushBytesBuf},
     constants::COIN_VALUE,
     opcodes, WPubkeyHash,

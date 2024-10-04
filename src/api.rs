@@ -19,12 +19,12 @@ pub struct Block {
   pub inscriptions: Vec<InscriptionId>,
   pub runes: Vec<SpacedRune>,
   pub target: BlockHash,
-  pub transactions: Vec<bitcoin::blockdata::transaction::Transaction>,
+  pub transactions: Vec<bellscoin::blockdata::transaction::Transaction>,
 }
 
 impl Block {
   pub(crate) fn new(
-    block: bitcoin::Block,
+    block: bellscoin::Block,
     height: Height,
     best_height: Height,
     inscriptions: Vec<InscriptionId>,

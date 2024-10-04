@@ -33,7 +33,7 @@ pub(crate) struct WalletCommand {
   pub(crate) no_sync: bool,
   #[arg(
     long,
-    help = "Use ord running at <SERVER_URL>. [default: http://localhost:80]"
+    help = "Use ord running at <SERVER_URL>. [default: http://localhost:3333]"
   )]
   pub(crate) server_url: Option<Url>,
   #[command(subcommand)]
@@ -100,7 +100,7 @@ impl WalletCommand {
         .as_ref()
         .map(Url::as_str)
         .or(settings.server_url())
-        .unwrap_or("http://127.0.0.1:80")
+        .unwrap_or("http://127.0.0.1:3333")
         .parse::<Url>()
         .context("invalid server URL")?,
     )?;

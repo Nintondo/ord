@@ -40,7 +40,7 @@ impl Rtx {
           .transpose()?
           .map(|(_height, header)| header),
       }
-      .map(|header| Header::load(*header.value()).block_hash()),
+      .map(|header| Header::load(header.value()).block_hash()),
     )
   }
 }

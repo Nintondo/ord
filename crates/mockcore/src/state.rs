@@ -1,6 +1,6 @@
 use {
   super::*,
-  bitcoin::{
+  bellscoin::{
     key::{KeyPair, Secp256k1, XOnlyPublicKey},
     secp256k1::rand,
     WPubkeyHash,
@@ -32,7 +32,7 @@ impl State {
     let mut hashes = Vec::new();
     let mut blocks = BTreeMap::new();
 
-    let genesis_block = bitcoin::blockdata::constants::genesis_block(network);
+    let genesis_block = bellscoin::blockdata::constants::genesis_block(network);
     let genesis_block_hash = genesis_block.block_hash();
     hashes.push(genesis_block_hash);
     blocks.insert(genesis_block_hash, genesis_block);
@@ -150,6 +150,7 @@ impl State {
         time: self.blocks.len().try_into().unwrap(),
         bits: CompactTarget::from_consensus(0),
         nonce: self.nonce,
+        auxpow: None,
       },
       txdata: std::iter::once(coinbase)
         .chain(self.mempool.drain(0..))

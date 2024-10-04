@@ -2,18 +2,18 @@ use {
   super::*,
   base64::{self, Engine},
   batch::ParentInfo,
-  bitcoin::secp256k1::{All, Secp256k1},
-  bitcoin::{
+  bells_miniscript::descriptor::{DescriptorSecretKey, DescriptorXKey, Wildcard},
+  bellscoin::secp256k1::{All, Secp256k1},
+  bellscoin::{
     bip32::{ChildNumber, DerivationPath, ExtendedPrivKey, Fingerprint},
     psbt::Psbt,
   },
-  bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, Timestamp},
+  bellscoincore_rpc::bellscoincore_rpc_json::{ImportDescriptors, Timestamp},
   entry::{EtchingEntry, EtchingEntryValue},
   fee_rate::FeeRate,
   index::entry::Entry,
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
-  miniscript::descriptor::{DescriptorSecretKey, DescriptorXKey, Wildcard},
   redb::{Database, DatabaseError, ReadableTable, RepairSession, StorageError, TableDefinition},
   reqwest::header,
   std::sync::Once,
@@ -50,7 +50,7 @@ impl From<Statistic> for u64 {
 #[derive(Clone, PartialEq, Eq, Debug, Deserialize, Serialize)]
 pub struct Descriptor {
   pub desc: String,
-  pub timestamp: bitcoincore_rpc::bitcoincore_rpc_json::Timestamp,
+  pub timestamp: bellscoincore_rpc::bellscoincore_rpc_json::Timestamp,
   pub active: bool,
   pub internal: Option<bool>,
   pub range: Option<(u64, u64)>,
@@ -504,7 +504,7 @@ impl Wallet {
     let derivation_path = DerivationPath::master()
       .child(ChildNumber::Hardened { index: 86 })
       .child(ChildNumber::Hardened {
-        index: u32::from(network != Network::Bitcoin),
+        index: u32::from(network != Network::Bellscoin),
       })
       .child(ChildNumber::Hardened { index: 0 });
 
@@ -546,11 +546,11 @@ impl Wallet {
     let mut key_map = HashMap::new();
     key_map.insert(public_key.clone(), secret_key);
 
-    let descriptor = miniscript::descriptor::Descriptor::new_tr(public_key, None)?;
+    let descriptor = bells_miniscript::descriptor::Descriptor::new_tr(public_key, None)?;
 
     settings
       .bitcoin_rpc_client(Some(name.clone()))?
-      .import_descriptors(ImportDescriptors {
+      .import_descriptors(vec![ImportDescriptors {
         descriptor: descriptor.to_string_with_secret(&key_map),
         timestamp: Timestamp::Now,
         active: Some(true),
@@ -558,7 +558,7 @@ impl Wallet {
         next_index: None,
         internal: Some(change),
         label: None,
-      })?;
+      }])?;
 
     Ok(())
   }
@@ -572,7 +572,7 @@ impl Wallet {
         "Bitcoin Core {} or newer required, current version is {}",
         Self::format_bitcoin_core_version(MIN_VERSION),
         Self::format_bitcoin_core_version(bitcoin_version),
-      );
+      )
     } else {
       Ok(client)
     }

@@ -2,7 +2,7 @@
 
 use {
   arbitrary::Arbitrary,
-  bitcoin::{
+  bellscoin::{
     address::{Address, NetworkUnchecked},
     Amount, Network, OutPoint, TxOut,
   },

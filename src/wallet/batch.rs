@@ -1,6 +1,6 @@
 use {
   super::*,
-  bitcoin::{
+  bellscoin::{
     blockdata::{opcodes, script},
     key::PrivateKey,
     key::{TapTweak, TweakedKeyPair, TweakedPublicKey, UntweakedKeyPair},
@@ -10,7 +10,9 @@ use {
     taproot::Signature,
     taproot::{ControlBlock, LeafVersion, TapLeafHash, TaprootBuilder},
   },
-  bitcoincore_rpc::bitcoincore_rpc_json::{ImportDescriptors, SignRawTransactionInput, Timestamp},
+  bellscoincore_rpc::bellscoincore_rpc_json::{
+    ImportDescriptors, SignRawTransactionInput, Timestamp,
+  },
   wallet::transaction_builder::Target,
 };
 
@@ -69,7 +71,7 @@ mod tests {
   use {
     super::*,
     crate::wallet::batch::{self, ParentInfo},
-    bitcoin::policy::MAX_STANDARD_TX_WEIGHT,
+    bellscoin::policy::MAX_STANDARD_TX_WEIGHT,
   };
 
   #[test]

@@ -23,7 +23,7 @@ mod tests {
     AddressHtml {
       address: Address::from_str("bc1phuq0vkls6w926zdaem6x9n02z2gg7j2xfudgwddyey7uyquarlgsh40ev8")
         .unwrap()
-        .require_network(Network::Bitcoin)
+        .require_network(Network::Bellscoin)
         .unwrap(),
       outputs: vec![outpoint(1), outpoint(2)],
       inscriptions: vec![inscription_id(1)],

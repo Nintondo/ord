@@ -16,8 +16,8 @@ use {
     subcommand::{find::FindRangeOutput, server::query},
     templates::StatusHtml,
   },
-  bitcoin::block::Header,
-  bitcoincore_rpc::{
+  bellscoin::block::Header,
+  bellscoincore_rpc::{
     json::{GetBlockHeaderResult, GetBlockStatsResult},
     Client,
   },
@@ -55,7 +55,7 @@ const SCHEMA_VERSION: u64 = 28;
 define_multimap_table! { SAT_TO_SEQUENCE_NUMBER, u64, u32 }
 define_multimap_table! { SEQUENCE_NUMBER_TO_CHILDREN, u32, u32 }
 define_multimap_table! { SCRIPT_PUBKEY_TO_OUTPOINT, &[u8], OutPointValue }
-define_table! { HEIGHT_TO_BLOCK_HEADER, u32, &HeaderValue }
+define_table! { HEIGHT_TO_BLOCK_HEADER, u32, HeaderValue }
 define_table! { HEIGHT_TO_LAST_SEQUENCE_NUMBER, u32, u32 }
 define_table! { HOME_INSCRIPTIONS, u32, InscriptionIdValue }
 define_table! { INSCRIPTION_ID_TO_SEQUENCE_NUMBER, InscriptionIdValue, u32 }
@@ -162,15 +162,15 @@ pub(crate) trait BitcoinCoreRpcResultExt<T> {
   fn into_option(self) -> Result<Option<T>>;
 }
 
-impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
+impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bellscoincore_rpc::Error> {
   fn into_option(self) -> Result<Option<T>> {
     match self {
       Ok(ok) => Ok(Some(ok)),
-      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
-        bitcoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
+      Err(bellscoincore_rpc::Error::JsonRpc(bellscoincore_rpc::jsonrpc::error::Error::Rpc(
+        bellscoincore_rpc::jsonrpc::error::RpcError { code: -8, .. },
       ))) => Ok(None),
-      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
-        bitcoincore_rpc::jsonrpc::error::RpcError {
+      Err(bellscoincore_rpc::Error::JsonRpc(bellscoincore_rpc::jsonrpc::error::Error::Rpc(
+        bellscoincore_rpc::jsonrpc::error::RpcError {
           code: -5, message, ..
         },
       )))
@@ -178,8 +178,8 @@ impl<T> BitcoinCoreRpcResultExt<T> for Result<T, bitcoincore_rpc::Error> {
       {
         Ok(None)
       }
-      Err(bitcoincore_rpc::Error::JsonRpc(bitcoincore_rpc::jsonrpc::error::Error::Rpc(
-        bitcoincore_rpc::jsonrpc::error::RpcError { message, .. },
+      Err(bellscoincore_rpc::Error::JsonRpc(bellscoincore_rpc::jsonrpc::error::Error::Rpc(
+        bellscoincore_rpc::jsonrpc::error::RpcError { message, .. },
       )))
         if message.ends_with("not found") =>
       {
@@ -858,7 +858,7 @@ impl Index {
       .take(take)
     {
       let next = next?;
-      blocks.push((next.0.value(), Header::load(*next.1.value()).block_hash()));
+      blocks.push((next.0.value(), Header::load(next.1.value()).block_hash()));
     }
 
     Ok(blocks)
@@ -1752,7 +1752,7 @@ impl Index {
     let height_to_block_header = rtx.open_table(HEIGHT_TO_BLOCK_HEADER)?;
 
     if let Some(guard) = height_to_block_header.get(height)? {
-      return Ok(Blocktime::confirmed(Header::load(*guard.value()).time));
+      return Ok(Blocktime::confirmed(Header::load(guard.value()).time));
     }
 
     let current = height_to_block_header

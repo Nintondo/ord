@@ -46,7 +46,7 @@ impl Rune {
   pub fn first_rune_height(network: Network) -> u32 {
     SUBSIDY_HALVING_INTERVAL
       * match network {
-        Network::Bitcoin => 4,
+        Network::Bellscoin => 4,
         Network::Regtest => 0,
         Network::Signet => 0,
         Network::Testnet => 12,
@@ -241,7 +241,7 @@ mod tests {
     #[track_caller]
     fn case(height: u32, minimum: &str) {
       assert_eq!(
-        Rune::minimum_at_height(Network::Bitcoin, Height(height)).to_string(),
+        Rune::minimum_at_height(Network::Bellscoin, Height(height)).to_string(),
         minimum,
       );
     }

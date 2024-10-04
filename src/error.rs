@@ -5,12 +5,12 @@ use super::*;
 pub enum SnafuError {
   #[snafu(display("Failed to parse address `{}`", input))]
   AddressParse {
-    source: bitcoin::address::Error,
+    source: bellscoin::address::Error,
     input: String,
   },
   #[snafu(display("Failed to parse hash `{}`", input))]
   HashParse {
-    source: bitcoin::hashes::hex::Error,
+    source: bellscoin::hashes::hex::Error,
     input: String,
   },
   #[snafu(display("Failed to parse inscription ID `{}`", input))]
@@ -25,7 +25,7 @@ pub enum SnafuError {
   },
   #[snafu(display("Failed to parse out point `{}`", input))]
   OutPointParse {
-    source: bitcoin::transaction::ParseOutPointError,
+    source: bellscoin::transaction::ParseOutPointError,
     input: String,
   },
   #[snafu(display("Failed to parse rune `{}`", input))]
@@ -47,7 +47,7 @@ pub enum SnafuError {
   UnrecognizedRepresentation { input: String },
   #[snafu(display("Unrecognized outgoing amount: `{}`", input))]
   AmountParse {
-    source: bitcoin::amount::ParseAmountError,
+    source: bellscoin::amount::ParseAmountError,
     input: String,
   },
   #[snafu(display("Unrecognized outgoing: `{}`", input))]
@@ -57,7 +57,7 @@ pub enum SnafuError {
   #[snafu(display("Invalid chain `{}`", chain))]
   InvalidChain { chain: String },
   #[snafu(display("Failed to convert script to address: {}", source))]
-  AddressConversion { source: bitcoin::address::Error },
+  AddressConversion { source: bellscoin::address::Error },
   #[snafu(display("{err}"))]
   Anyhow { err: anyhow::Error },
   #[snafu(display("environment variable `{variable}` not valid unicode: `{}`", value.to_string_lossy()))]

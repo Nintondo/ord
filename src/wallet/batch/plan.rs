@@ -624,7 +624,7 @@ impl Plan {
 
     let reveal_weight = reveal_tx.weight();
 
-    if !self.no_limit && reveal_weight > bitcoin::Weight::from_wu(MAX_STANDARD_TX_WEIGHT.into()) {
+    if !self.no_limit && reveal_weight > bellscoin::Weight::from_wu(MAX_STANDARD_TX_WEIGHT.into()) {
       bail!(
         "reveal transaction weight greater than {MAX_STANDARD_TX_WEIGHT} (MAX_STANDARD_TX_WEIGHT): {reveal_weight}"
       );
@@ -683,7 +683,7 @@ impl Plan {
 
     let response = wallet
       .bitcoin_client()
-      .import_descriptors(ImportDescriptors {
+      .import_descriptors(vec![ImportDescriptors {
         descriptor: format!("rawtr({})#{}", recovery_private_key.to_wif(), info.checksum),
         timestamp: Timestamp::Now,
         active: Some(false),
@@ -691,7 +691,7 @@ impl Plan {
         next_index: None,
         internal: Some(false),
         label: Some("commit tx recovery key".to_string()),
-      })?;
+      }])?;
 
     for result in response {
       if !result.success {

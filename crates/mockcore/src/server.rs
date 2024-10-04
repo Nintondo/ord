@@ -1,7 +1,7 @@
 use {
   super::*,
   base64::Engine,
-  bitcoin::{consensus::Decodable, psbt::Psbt, Witness},
+  bellscoin::{consensus::Decodable, psbt::Psbt, Witness},
   std::io::Cursor,
 };
 
@@ -51,7 +51,7 @@ impl Api for Server {
   fn get_blockchain_info(&self) -> Result<GetBlockchainInfoResult, jsonrpc_core::Error> {
     Ok(GetBlockchainInfoResult {
       chain: String::from(match self.network {
-        Network::Bitcoin => "main",
+        Network::Bellscoin => "main",
         Network::Testnet => "test",
         Network::Signet => "signet",
         Network::Regtest => "regtest",
@@ -512,7 +512,7 @@ impl Api for Server {
     for tx_in in &tx.input {
       if let Some(lock_time) = tx_in.sequence.to_relative_lock_time() {
         match lock_time {
-          bitcoin::relative::LockTime::Blocks(blocks) => {
+          bellscoin::relative::LockTime::Blocks(blocks) => {
             if state
               .txid_to_block_height
               .get(&tx_in.previous_output.txid)
@@ -523,7 +523,7 @@ impl Api for Server {
               panic!("input is locked");
             }
           }
-          bitcoin::relative::LockTime::Time(_) => {
+          bellscoin::relative::LockTime::Time(_) => {
             panic!("time-based relative locktimes are not implemented")
           }
         }
@@ -787,7 +787,7 @@ impl Api for Server {
 
   fn get_raw_change_address(
     &self,
-    _address_type: Option<bitcoincore_rpc::json::AddressType>,
+    _address_type: Option<bellscoincore_rpc::json::AddressType>,
   ) -> Result<Address, jsonrpc_core::Error> {
     Ok(self.state().new_address(true))
   }
@@ -824,7 +824,7 @@ impl Api for Server {
   fn get_new_address(
     &self,
     _label: Option<String>,
-    _address_type: Option<bitcoincore_rpc::json::AddressType>,
+    _address_type: Option<bellscoincore_rpc::json::AddressType>,
   ) -> Result<Address, jsonrpc_core::Error> {
     Ok(self.state().new_address(false))
   }
