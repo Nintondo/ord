@@ -422,6 +422,8 @@ impl<'index> Updater<'index> {
     let mut sequence_number_to_inscription_entry =
       wtx.open_table(SEQUENCE_NUMBER_TO_INSCRIPTION_ENTRY)?;
     let mut transaction_id_to_transaction = wtx.open_table(TRANSACTION_ID_TO_TRANSACTION)?;
+    let mut partials_table = wtx.open_table(PARTIAL_OUTPOINT_TO_PARTIALS)?;
+    let mut inscription_ids_to_outpoints_table = wtx.open_table(INSCRIPTION_ID_TO_OUTPOINTS)?;
 
     let index_inscriptions = self.height >= self.index.settings.first_inscription_height()
       && self.index.index_inscriptions;
@@ -516,6 +518,8 @@ impl<'index> Updater<'index> {
       timestamp: block.header.time,
       transaction_buffer: Vec::new(),
       transaction_id_to_transaction: &mut transaction_id_to_transaction,
+      partials: &mut partials_table,
+      inscription_ids_to_outpoints: &mut inscription_ids_to_outpoints_table,
       unbound_inscriptions,
     };
 

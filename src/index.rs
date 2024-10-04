@@ -22,8 +22,10 @@ use {
     Client,
   },
   chrono::SubsecRound,
+  entry::{OutPointsValue, PartialValue},
   indicatif::{ProgressBar, ProgressStyle},
   log::log_enabled,
+  partials::{InscriptionParser, ParsedInscription},
   redb::{
     Database, DatabaseError, MultimapTable, MultimapTableDefinition, MultimapTableHandle,
     ReadOnlyTable, ReadableMultimapTable, ReadableTable, ReadableTableMetadata, RepairSession,
@@ -72,6 +74,8 @@ define_table! { STATISTIC_TO_COUNT, u64, u64 }
 define_table! { TRANSACTION_ID_TO_RUNE, &TxidValue, u128 }
 define_table! { TRANSACTION_ID_TO_TRANSACTION, &TxidValue, &[u8] }
 define_table! { WRITE_TRANSACTION_STARTING_BLOCK_COUNT_TO_TIMESTAMP, u32, u128 }
+define_table! { PARTIAL_OUTPOINT_TO_PARTIALS, &OutPointValue, PartialValue }
+define_table! { INSCRIPTION_ID_TO_OUTPOINTS, InscriptionIdValue, OutPointsValue }
 
 #[derive(Copy, Clone)]
 pub(crate) enum Statistic {
@@ -1480,12 +1484,54 @@ impl Index {
     Ok(satpoint)
   }
 
+  pub fn get_partial_inscription(
+    &self,
+    inscription_id: InscriptionId,
+  ) -> Result<Option<Inscription>> {
+    let rtx = self.database.begin_read()?;
+
+    let Some(partial_txs) = rtx
+      .open_table(INSCRIPTION_ID_TO_OUTPOINTS)?
+      .get(&inscription_id.store())?
+      .map(|x| x.value())
+      .map(|x| Vec::<OutPoint>::load(x))
+    else {
+      return Ok(None);
+    };
+
+    let transactions = self
+      .get_transactions(partial_txs.iter().map(|x| x.txid))?
+      .into_iter()
+      .zip(partial_txs.iter().map(|x| x.txid))
+      .map(|(tx, txid)| tx.map(|tx| (txid, tx)))
+      .flatten()
+      .collect::<HashMap<_, _>>();
+
+    let scripts = partial_txs
+      .iter()
+      .map(|x| {
+        let tx = transactions.get(&x.txid).unwrap();
+        tx.input[x.vout as usize].script_sig.as_script()
+      })
+      .collect::<Vec<_>>();
+
+    let ParsedInscription::Complete(inscription) = InscriptionParser::parse(scripts) else {
+      return Ok(None);
+    };
+
+    Ok(Some(inscription))
+  }
+
   pub fn get_inscription_by_id(
     &self,
     inscription_id: InscriptionId,
   ) -> Result<Option<Inscription>> {
     if !self.inscription_exists(inscription_id)? {
       return Ok(None);
+    }
+
+    if let Some(inscription) = self.get_partial_inscription(inscription_id)? {
+      return Ok(Some(inscription));
     }
 
     Ok(self.get_transaction(inscription_id.txid)?.and_then(|tx| {
@@ -1587,6 +1633,18 @@ impl Index {
     }
 
     self.client.get_raw_transaction(&txid, None).into_option()
+  }
+
+  pub fn get_transactions(
+    &self,
+    txids: impl Iterator<Item = Txid>,
+  ) -> Result<Vec<Option<Transaction>>> {
+    let mut transactions = Vec::new();
+    for txid in txids {
+      transactions.push(self.get_transaction(txid)?);
+    }
+
+    Ok(transactions)
   }
 
   pub fn find(&self, sat: Sat) -> Result<Option<SatPoint>> {
@@ -1985,11 +2043,20 @@ impl Index {
       return Ok(None);
     };
 
-    let Some(inscription) = ParsedEnvelope::from_transaction(&transaction)
+    let taproot = ParsedEnvelope::from_transaction(&transaction)
       .into_iter()
       .nth(entry.id.index as usize)
-      .map(|envelope| envelope.payload)
-    else {
+      .map(|envelope| envelope.payload);
+
+    let inscription = {
+      if taproot.is_some() {
+        taproot
+      } else {
+        self.get_partial_inscription(entry.id)?
+      }
+    };
+
+    let Some(inscription) = inscription else {
       return Ok(None);
     };
 

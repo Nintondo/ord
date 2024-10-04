@@ -1,3 +1,5 @@
+use partials::Partial;
+
 use super::*;
 
 pub(crate) trait Entry: Sized {
@@ -432,6 +434,30 @@ impl Entry for OutPoint {
   }
 }
 
+pub(super) type OutPointsValue = Vec<[u8; 36]>;
+
+impl Entry for Vec<OutPoint> {
+  type Value = OutPointsValue;
+
+  fn load(value: Self::Value) -> Self {
+    value
+      .into_iter()
+      .map(|x| Decodable::consensus_decode(&mut Cursor::new(x)).unwrap())
+      .collect()
+  }
+
+  fn store(self) -> Self::Value {
+    self
+      .into_iter()
+      .map(|x| {
+        let mut value = [0; 36];
+        x.consensus_encode(&mut value.as_mut_slice()).unwrap();
+        value
+      })
+      .collect()
+  }
+}
+
 pub(super) type SatPointValue = [u8; 44];
 
 impl Entry for SatPoint {
@@ -445,6 +471,20 @@ impl Entry for SatPoint {
     let mut value = [0; 44];
     self.consensus_encode(&mut value.as_mut_slice()).unwrap();
     value
+  }
+}
+
+pub(super) type PartialValue = Vec<u8>;
+
+impl Entry for Partial {
+  type Value = PartialValue;
+
+  fn load(value: Self::Value) -> Self {
+    postcard::from_bytes(&value).unwrap()
+  }
+
+  fn store(self) -> Self::Value {
+    postcard::to_stdvec(&self).unwrap()
   }
 }
 

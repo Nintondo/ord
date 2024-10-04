@@ -10,7 +10,7 @@ use {
   std::iter::Peekable,
 };
 
-pub(crate) const PROTOCOL_ID: [u8; 3] = *b"ord";
+pub const PROTOCOL_ID: [u8; 3] = *b"ord";
 pub(crate) const BODY_TAG: [u8; 0] = [];
 
 type Result<T> = std::result::Result<T, script::Error>;

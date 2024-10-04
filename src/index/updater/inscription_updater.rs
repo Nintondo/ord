@@ -1,3 +1,5 @@
+use partials::Partial;
+
 use super::*;
 
 #[derive(Debug, PartialEq, Copy, Clone)]
@@ -54,6 +56,8 @@ pub(super) struct InscriptionUpdater<'a, 'tx> {
   pub(super) sat_to_sequence_number: &'a mut MultimapTable<'tx, u64, u32>,
   pub(super) sequence_number_to_children: &'a mut MultimapTable<'tx, u32, u32>,
   pub(super) sequence_number_to_entry: &'a mut Table<'tx, u32, InscriptionEntryValue>,
+  pub(super) partials: &'a mut Table<'tx, &'static OutPointValue, PartialValue>,
+  pub(super) inscription_ids_to_outpoints: &'a mut Table<'tx, InscriptionIdValue, OutPointsValue>,
   pub(super) timestamp: u32,
   pub(super) unbound_inscriptions: u64,
 }
@@ -126,6 +130,130 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
 
       let input_value = input_utxo_entries[input_index].total_value();
       total_input_value += input_value;
+
+      {
+        let mut partials = self
+          .partials
+          .remove(&txin.previous_output.store())?
+          .map(|x| Partial::load(x.value()))
+          .unwrap_or(Partial {
+            outpoints: vec![],
+            vout: input_index as u32,
+          });
+
+        let mut txs = HashMap::<Txid, Transaction>::from_iter([(txid, tx.clone())]);
+
+        txs.extend(
+          index
+            .get_transactions(partials.outpoints.iter().map(|x| x.txid))?
+            .into_iter()
+            .map(|x| {
+              let tx = x.unwrap();
+              (tx.txid(), tx)
+            }),
+        );
+
+        partials.outpoints.push(OutPoint {
+          txid,
+          vout: input_index as u32,
+        });
+
+        let scripts = partials
+          .outpoints
+          .iter()
+          .map(|x| {
+            txs.get(&x.txid).unwrap().input[x.vout as usize]
+              .script_sig
+              .as_script()
+          })
+          .collect();
+
+        match InscriptionParser::parse(scripts) {
+          ParsedInscription::Complete(inscription) => {
+            let inscription_id = InscriptionId {
+              txid: partials.outpoints.first().unwrap().txid,
+              index: id_counter,
+            };
+
+            let curse = if inscription.unrecognized_even_field {
+              Some(Curse::UnrecognizedEvenField)
+            } else if inscription.duplicate_field {
+              Some(Curse::DuplicateField)
+            } else if inscription.incomplete_field {
+              Some(Curse::IncompleteField)
+            } else if input_index != 0 {
+              Some(Curse::NotInFirstInput)
+            } else if inscription.pointer.is_some() {
+              Some(Curse::Pointer)
+            } else if let Some((id, count)) = inscribed_offsets.get(&offset) {
+              if *count > 1 {
+                Some(Curse::Reinscription)
+              } else {
+                let initial_inscription_sequence_number =
+                  self.id_to_sequence_number.get(id.store())?.unwrap().value();
+
+                let entry = InscriptionEntry::load(
+                  self
+                    .sequence_number_to_entry
+                    .get(initial_inscription_sequence_number)?
+                    .unwrap()
+                    .value(),
+                );
+
+                let initial_inscription_was_cursed_or_vindicated =
+                  entry.inscription_number < 0 || Charm::Vindicated.is_set(entry.charms);
+
+                if initial_inscription_was_cursed_or_vindicated {
+                  None
+                } else {
+                  Some(Curse::Reinscription)
+                }
+              }
+            } else {
+              None
+            };
+
+            floating_inscriptions.push(Flotsam {
+              inscription_id,
+              offset,
+              origin: Origin::New {
+                cursed: curse.is_some() && !jubilant,
+                fee: 0,
+                hidden: inscription.hidden(),
+                parents: inscription.parents(),
+                reinscription: inscribed_offsets.contains_key(&offset),
+                unbound: input_value == 0
+                  || curse == Some(Curse::UnrecognizedEvenField)
+                  || inscription.unrecognized_even_field,
+                vindicated: curse.is_some() && jubilant,
+              },
+            });
+
+            self
+              .inscription_ids_to_outpoints
+              .insert(inscription_id.store(), partials.outpoints.store())?;
+
+            inscribed_offsets
+              .entry(offset)
+              .or_insert((inscription_id, 0))
+              .1 += 1;
+
+            envelopes.next();
+            id_counter += 1;
+          }
+          ParsedInscription::Partial => {
+            self.partials.insert(
+              &OutPoint {
+                txid,
+                vout: input_index as u32,
+              }
+              .store(),
+              partials.store(),
+            )?;
+          }
+          _ => {}
+        };
+      }
 
       // go through all inscriptions in this input
       while let Some(inscription) = envelopes.peek() {

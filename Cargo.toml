@@ -78,6 +78,9 @@ tower-http = { version = "0.4.0", features = [
     "set-header",
 ] }
 urlencoding = "2.1.3"
+postcard = { version = "1.0.10", default-features = false, features = [
+    "use-std",
+] }
 
 [dev-dependencies]
 criterion = "0.5.1"

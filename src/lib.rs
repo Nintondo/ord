@@ -89,7 +89,7 @@ pub use self::{
   chain::Chain,
   fee_rate::FeeRate,
   index::{Index, RuneEntry},
-  inscriptions::{Envelope, Inscription, InscriptionId},
+  inscriptions::{Envelope, Inscription, InscriptionId, PROTOCOL_ID},
   object::Object,
   options::Options,
   wallet::transaction_builder::{Target, TransactionBuilder},
@@ -111,12 +111,13 @@ mod deserialize_from_str;
 mod error;
 mod fee_rate;
 pub mod index;
-mod inscriptions;
+pub mod inscriptions;
 mod into_usize;
 mod macros;
 mod object;
 pub mod options;
 pub mod outgoing;
+pub mod partials;
 mod re;
 mod representation;
 pub mod runes;
