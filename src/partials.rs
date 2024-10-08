@@ -3,6 +3,7 @@ use super::*;
 #[derive(Serialize, Deserialize)]
 pub struct Partial {
   pub vout: u32,
+  pub inscription_idx: u32,
   pub outpoints: Vec<OutPoint>,
 }
 

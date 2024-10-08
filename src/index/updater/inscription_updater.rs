@@ -138,6 +138,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           .map(|x| Partial::load(x.value()))
           .unwrap_or(Partial {
             outpoints: vec![],
+            inscription_idx: id_counter,
             vout: input_index as u32,
           });
 
@@ -238,10 +239,13 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
               .or_insert((inscription_id, 0))
               .1 += 1;
 
-            envelopes.next();
             id_counter += 1;
           }
           ParsedInscription::Partial => {
+            if partials.outpoints.len() == 1 {
+              id_counter += 1;
+            }
+
             self.partials.insert(
               &OutPoint {
                 txid,
