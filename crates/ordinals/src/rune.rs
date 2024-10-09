@@ -46,10 +46,10 @@ impl Rune {
   pub fn first_rune_height(network: Network) -> u32 {
     SUBSIDY_HALVING_INTERVAL
       * match network {
-        Network::Bellscoin => 4,
+        Network::Bellscoin => 0,
         Network::Regtest => 0,
         Network::Signet => 0,
-        Network::Testnet => 12,
+        Network::Testnet => 0,
         _ => 0,
       }
   }
