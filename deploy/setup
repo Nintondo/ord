@@ -54,7 +54,7 @@ case $CHAIN in
     ufw allow 38333
     ;;
   test)
-    COOKIE_FILE_DIR=/var/lib/bitcoind/testnet3
+    COOKIE_FILE_DIR=/var/lib/bitcoind/testnet
     CSP_ORIGIN=testnet.ordinals.com
     ufw allow 18333
     ;;

@@ -73,7 +73,7 @@ impl Chain {
   pub(crate) fn join_with_data_dir(self, data_dir: impl AsRef<Path>) -> PathBuf {
     match self {
       Self::Mainnet => data_dir.as_ref().to_owned(),
-      Self::Testnet => data_dir.as_ref().join("testnet3"),
+      Self::Testnet => data_dir.as_ref().join("testnet"),
       Self::Signet => data_dir.as_ref().join("signet"),
       Self::Regtest => data_dir.as_ref().join("regtest"),
     }

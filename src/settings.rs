@@ -844,17 +844,17 @@ mod tests {
     check_network_alias(
       "test",
       if cfg!(windows) {
-        r"ord\testnet3"
+        r"ord\testnet"
       } else {
-        "ord/testnet3"
+        "ord/testnet"
       },
     );
     check_network_alias(
       "testnet",
       if cfg!(windows) {
-        r"ord\testnet3"
+        r"ord\testnet"
       } else {
-        "ord/testnet3"
+        "ord/testnet"
       },
     );
   }
