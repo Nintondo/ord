@@ -89,6 +89,7 @@ impl Media {
     ("image/avif",                  GENERIC, Image(Auto),      &["avif"]),
     ("image/gif",                   GENERIC, Image(Pixelated), &["gif"]),
     ("image/jpeg",                  GENERIC, Image(Pixelated), &["jpg", "jpeg"]),
+    ("image/jpg",                  GENERIC, Image(Pixelated), &["jpg", "jpeg"]),
     ("image/jxl",                   GENERIC, Image(Auto),      &[]),
     ("image/png",                   GENERIC, Image(Pixelated), &["png"]),
     ("image/svg+xml",               TEXT,    Iframe,           &["svg"]),
@@ -170,7 +171,7 @@ impl FromStr for Media {
 
   fn from_str(s: &str) -> Result<Self, Self::Err> {
     for entry in Self::TABLE {
-      if entry.0 == s {
+      if entry.0 == s.split(';').next().unwrap() {
         return Ok(entry.2);
       }
     }
