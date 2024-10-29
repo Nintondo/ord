@@ -31,12 +31,10 @@ mod tests {
         <h1>Sat 0</h1>
         <dl>
           <dt>decimal</dt><dd>0.0</dd>
-          <dt>degree</dt><dd>0°0′0″0‴</dd>
           <dt>percentile</dt><dd>0%</dd>
           <dt>name</dt><dd>nvtdijuwxlp</dd>
           <dt>cycle</dt><dd>0</dd>
           <dt>epoch</dt><dd>0</dd>
-          <dt>period</dt><dd>0</dd>
           <dt>block</dt><dd><a href=/block/0>0</a></dd>
           <dt>offset</dt><dd>0</dd>
           <dt>timestamp</dt><dd><time>1970-01-01 00:00:00 UTC</time></dd>
@@ -69,12 +67,10 @@ mod tests {
         <h1>Sat 2099999997689999</h1>
         <dl>
           <dt>decimal</dt><dd>6929999.0</dd>
-          <dt>degree</dt><dd>5°209999′1007″0‴</dd>
           <dt>percentile</dt><dd>100%</dd>
           <dt>name</dt><dd>a</dd>
           <dt>cycle</dt><dd>5</dd>
           <dt>epoch</dt><dd>32</dd>
-          <dt>period</dt><dd>3437</dd>
           <dt>block</dt><dd><a href=/block/6929999>6929999</a></dd>
           <dt>offset</dt><dd>0</dd>
           <dt>timestamp</dt><dd><time>1970-01-01 00:00:00 UTC</time></dd>

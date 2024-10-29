@@ -9,18 +9,14 @@ impl Height {
   }
 
   pub fn subsidy(self) -> u64 {
-    Epoch::from(self).subsidy()
+    get_block_subsidy(self.0)
   }
 
   pub fn starting_sat(self) -> Sat {
     let epoch = Epoch::from(self);
-    let epoch_starting_sat = epoch.starting_sat();
-    let epoch_starting_height = epoch.starting_height();
-    epoch_starting_sat + u64::from(self.n() - epoch_starting_height.n()) * epoch.subsidy()
-  }
-
-  pub fn period_offset(self) -> u32 {
-    self.0 % DIFFCHANGE_INTERVAL
+    let epoch_starting_subsidy = SatsSubsidy::sat_from_height(epoch.starting_height());
+    let current_subsidy = SatsSubsidy::sat_from_height(self);
+    Sat(current_subsidy.0 - epoch_starting_subsidy.0)
   }
 }
 
@@ -49,6 +45,17 @@ impl PartialEq<u32> for Height {
 #[cfg(test)]
 mod tests {
   use super::*;
+
+  #[test]
+  fn block_subsidy() {
+    assert_eq!(get_block_subsidy(1241), 10000);
+    assert_eq!(get_block_subsidy(101), 100);
+    assert_eq!(get_block_subsidy(102), 100);
+    assert_eq!(get_block_subsidy(213214), 5000);
+    assert_eq!(get_block_subsidy(4314), 100);
+    assert_eq!(get_block_subsidy(129600), 25);
+    assert_eq!(get_block_subsidy(259200), 5);
+  }
 
   #[test]
   fn n() {
@@ -84,9 +91,6 @@ mod tests {
   fn subsidy() {
     assert_eq!(Height(0).subsidy(), 5000000000);
     assert_eq!(Height(1).subsidy(), 5000000000);
-    assert_eq!(Height(SUBSIDY_HALVING_INTERVAL - 1).subsidy(), 5000000000);
-    assert_eq!(Height(SUBSIDY_HALVING_INTERVAL).subsidy(), 2500000000);
-    assert_eq!(Height(SUBSIDY_HALVING_INTERVAL + 1).subsidy(), 2500000000);
   }
 
   #[test]
@@ -94,29 +98,8 @@ mod tests {
     assert_eq!(Height(0).starting_sat(), 0);
     assert_eq!(Height(1).starting_sat(), 5000000000);
     assert_eq!(
-      Height(SUBSIDY_HALVING_INTERVAL - 1).starting_sat(),
-      (u64::from(SUBSIDY_HALVING_INTERVAL) - 1) * 5000000000
-    );
-    assert_eq!(
-      Height(SUBSIDY_HALVING_INTERVAL).starting_sat(),
-      u64::from(SUBSIDY_HALVING_INTERVAL) * 5000000000
-    );
-    assert_eq!(
-      Height(SUBSIDY_HALVING_INTERVAL + 1).starting_sat(),
-      u64::from(SUBSIDY_HALVING_INTERVAL) * 5000000000 + 2500000000
-    );
-    assert_eq!(
       Height(u32::MAX).starting_sat(),
       *Epoch::STARTING_SATS.last().unwrap()
     );
-  }
-
-  #[test]
-  fn period_offset() {
-    assert_eq!(Height(0).period_offset(), 0);
-    assert_eq!(Height(1).period_offset(), 1);
-    assert_eq!(Height(DIFFCHANGE_INTERVAL - 1).period_offset(), 2015);
-    assert_eq!(Height(DIFFCHANGE_INTERVAL).period_offset(), 0);
-    assert_eq!(Height(DIFFCHANGE_INTERVAL + 1).period_offset(), 1);
   }
 }

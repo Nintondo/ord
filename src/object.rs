@@ -22,7 +22,7 @@ impl FromStr for Object {
       Address => Ok(Self::Address(
         input.parse().snafu_context(error::AddressParse { input })?,
       )),
-      Decimal | Degree | Percentile | Name => Ok(Self::Sat(
+      Decimal | Percentile | Name => Ok(Self::Sat(
         input.parse().snafu_context(error::SatParse { input })?,
       )),
       Hash => Ok(Self::Hash(

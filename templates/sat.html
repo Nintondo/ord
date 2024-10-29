@@ -1,12 +1,10 @@
 <h1>Sat {{ self.sat.n() }}</h1>
 <dl>
   <dt>decimal</dt><dd>{{ self.sat.decimal() }}</dd>
-  <dt>degree</dt><dd>{{ self.sat.degree() }}</dd>
   <dt>percentile</dt><dd>{{ self.sat.percentile() }}</dd>
   <dt>name</dt><dd>{{ self.sat.name() }}</dd>
   <dt>cycle</dt><dd>{{ self.sat.cycle() }}</dd>
   <dt>epoch</dt><dd>{{ self.sat.epoch() }}</dd>
-  <dt>period</dt><dd>{{ self.sat.period() }}</dd>
   <dt>block</dt><dd><a href=/block/{{self.sat.height()}}>{{ self.sat.height() }}</a></dd>
   <dt>offset</dt><dd>{{ self.sat.third() }}</dd>
   <dt>timestamp</dt><dd><time>{{self.blocktime.timestamp()}}</time>{{self.blocktime.suffix()}}</dd>

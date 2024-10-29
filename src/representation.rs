@@ -4,7 +4,6 @@ use {super::*, regex::RegexSet};
 pub(crate) enum Representation {
   Address,
   Decimal,
-  Degree,
   Hash,
   InscriptionId,
   Integer,
@@ -22,7 +21,6 @@ impl Representation {
       match self {
         Self::Address => r"^(bc|BC|tb|TB|bcrt|BCRT)1.*$",
         Self::Decimal => r"^.*\..*$",
-        Self::Degree => r"^.*°.*′.*″(.*‴)?$",
         Self::Hash => r"^[[:xdigit:]]{64}$",
         Self::InscriptionId => r"^[[:xdigit:]]{64}i\d+$",
         Self::Integer => r"^[0-9]*$",
@@ -51,7 +49,6 @@ impl FromStr for Representation {
 const PATTERNS: &[(Representation, &str)] = &[
   Representation::Address.pattern(),
   Representation::Decimal.pattern(),
-  Representation::Degree.pattern(),
   Representation::Hash.pattern(),
   Representation::InscriptionId.pattern(),
   Representation::Integer.pattern(),

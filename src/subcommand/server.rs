@@ -6,9 +6,9 @@ use {
   },
   super::*,
   crate::templates::{
-    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, ClockSvg, CollectionsHtml, HomeHtml,
-    InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent,
-    PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
+    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, CollectionsHtml, HomeHtml, InputHtml,
+    InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
+    ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
     PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
     PreviewVideoHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
   },
@@ -177,7 +177,6 @@ impl Server {
           "/children/:inscription_id/:page",
           get(Self::children_paginated),
         )
-        .route("/clock", get(Self::clock))
         .route("/collections", get(Self::collections))
         .route("/collections/:page", get(Self::collections_paginated))
         .route("/content/:inscription_id", get(Self::content))
@@ -486,21 +485,6 @@ impl Server {
     index.block_height()?.ok_or_not_found(|| "genesis block")
   }
 
-  async fn clock(Extension(index): Extension<Arc<Index>>) -> ServerResult {
-    task::block_in_place(|| {
-      Ok(
-        (
-          [(
-            header::CONTENT_SECURITY_POLICY,
-            HeaderValue::from_static("default-src 'unsafe-inline'"),
-          )],
-          ClockSvg::new(Self::index_height(&index)?),
-        )
-          .into_response(),
-      )
-    })
-  }
-
   async fn fallback(Extension(index): Extension<Arc<Index>>, uri: Uri) -> ServerResult<Response> {
     task::block_in_place(|| {
       let path = urlencoding::decode(uri.path().trim_matches('/'))
@@ -550,12 +534,10 @@ impl Server {
         Json(api::Sat {
           number: sat.0,
           decimal: sat.decimal().to_string(),
-          degree: sat.degree().to_string(),
           name: sat.name(),
           block: sat.height().0,
           cycle: sat.cycle(),
           epoch: sat.epoch().0,
-          period: sat.period(),
           offset: sat.third(),
           rarity: sat.rarity(),
           percentile: sat.percentile(),
@@ -3761,11 +3743,6 @@ mod tests {
   #[test]
   fn sat_decimal() {
     TestServer::new().assert_response_regex("/sat/0.0", StatusCode::OK, ".*<h1>Sat 0</h1>.*");
-  }
-
-  #[test]
-  fn sat_degree() {
-    TestServer::new().assert_response_regex("/sat/0°0′0″0‴", StatusCode::OK, ".*<h1>Sat 0</h1>.*");
   }
 
   #[test]

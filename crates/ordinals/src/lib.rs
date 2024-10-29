@@ -1,17 +1,20 @@
 //! Types for interoperating with ordinals, inscriptions, and runes.
 #![allow(clippy::large_enum_variant)]
+#[macro_use]
+extern crate lazy_static;
 
 use {
   bellscoin::{
     consensus::{Decodable, Encodable},
-    constants::{
-      COIN_VALUE, DIFFCHANGE_INTERVAL, MAX_SCRIPT_ELEMENT_SIZE, SUBSIDY_HALVING_INTERVAL,
-    },
+    constants::{COIN_VALUE, MAX_SCRIPT_ELEMENT_SIZE, SUBSIDY_HALVING_INTERVAL},
     opcodes,
     script::{self, Instruction},
     Network, OutPoint, ScriptBuf, Transaction,
   },
   derive_more::{Display, FromStr},
+  rand::Rng,
+  rand_mt::Mt19937GenRand32,
+  sats::SatsSubsidy,
   serde::{Deserialize, Serialize},
   serde_with::{DeserializeFromStr, SerializeDisplay},
   std::{
@@ -22,13 +25,14 @@ use {
     num::ParseIntError,
     ops::{Add, AddAssign, Sub},
   },
+  subsidy::get_block_subsidy,
   thiserror::Error,
 };
 
 pub use {
-  artifact::Artifact, cenotaph::Cenotaph, charm::Charm, decimal_sat::DecimalSat, degree::Degree,
-  edict::Edict, epoch::Epoch, etching::Etching, flaw::Flaw, height::Height, pile::Pile,
-  rarity::Rarity, rune::Rune, rune_id::RuneId, runestone::Runestone, sat::Sat, sat_point::SatPoint,
+  artifact::Artifact, cenotaph::Cenotaph, charm::Charm, decimal_sat::DecimalSat, edict::Edict,
+  epoch::Epoch, etching::Etching, flaw::Flaw, height::Height, pile::Pile, rarity::Rarity,
+  rune::Rune, rune_id::RuneId, runestone::Runestone, sat::Sat, sat_point::SatPoint,
   spaced_rune::SpacedRune, terms::Terms,
 };
 
@@ -42,7 +46,6 @@ mod artifact;
 mod cenotaph;
 mod charm;
 mod decimal_sat;
-mod degree;
 mod edict;
 mod epoch;
 mod etching;
@@ -55,6 +58,8 @@ mod rune_id;
 mod runestone;
 pub mod sat;
 pub mod sat_point;
+pub mod sats;
 pub mod spaced_rune;
+mod subsidy;
 mod terms;
 pub mod varint;

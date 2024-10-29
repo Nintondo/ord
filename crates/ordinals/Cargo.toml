@@ -10,7 +10,11 @@ rust-version = "1.74.0"
 
 [dependencies]
 bellscoin = { version = "0.30.5", features = ["rand"] }
+brotli = "7.0.0"
 derive_more = { version = "1.0.0", features = ["display", "from_str"] }
+lazy_static = "1.5.0"
+rand = "0.8.5"
+rand_mt = "4.2.2"
 serde = { version = "1.0.137", features = ["derive"] }
 serde_with = "3.7.0"
 thiserror = "1.0.56"
