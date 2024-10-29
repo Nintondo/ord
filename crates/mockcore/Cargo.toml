@@ -8,7 +8,7 @@ homepage = "https://github.com/ordinals/ord"
 repository = "https://github.com/ordinals/ord"
 
 [dependencies]
-bellscoin = { version = "0.30.5", features = ["serde", "rand"] }
+bellscoin = { version = "0.30.6", features = ["serde", "rand"] }
 base64 = "0.22.0"
 hex = "0.4.3"
 jsonrpc-core = "18.0.0"

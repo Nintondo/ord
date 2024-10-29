@@ -742,6 +742,7 @@ impl<'index> Updater<'index> {
     outputs_traversed: &mut u64,
   ) -> Result {
     let mut pending_input_sat_range = None;
+    dbg!(txid.to_string());
     let mut input_sat_ranges_iter = input_sat_ranges
       .iter()
       .flat_map(|slice| slice.chunks_exact(11));

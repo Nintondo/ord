@@ -482,9 +482,9 @@ dependencies = [
 
 [[package]]
 name = "bellscoin"
-version = "0.30.5"
+version = "0.30.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08980da7b27ce8e1652901955f142d37c8c53f141b159abe79dca64870e3f0da"
+checksum = "71826233c91425cab0fff281b2a097b0fffb42462bf73951bb490181514081c9"
 dependencies = [
  "bech32",
  "bitcoin-private",
