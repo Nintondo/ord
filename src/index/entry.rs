@@ -491,15 +491,15 @@ impl Entry for Partial {
 pub(super) type SatRange = (u64, u64);
 
 impl Entry for SatRange {
-  type Value = [u8; 11];
+  type Value = [u8; 12];
 
-  fn load([b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10]: Self::Value) -> Self {
+  fn load([b0, b1, b2, b3, b4, b5, b6, b7, b8, b9, b10, b11]: Self::Value) -> Self {
     let raw_base = u64::from_le_bytes([b0, b1, b2, b3, b4, b5, b6, 0]);
 
     // 51 bit base
     let base = raw_base & ((1 << 51) - 1);
 
-    let raw_delta = u64::from_le_bytes([b6, b7, b8, b9, b10, 0, 0, 0]);
+    let raw_delta = u64::from_le_bytes([b6, b7, b8, b9, b10, b11, 0, 0]);
 
     // 33 bit delta
     let delta = raw_delta >> 3;
@@ -511,7 +511,7 @@ impl Entry for SatRange {
     let base = self.0;
     let delta = self.1 - self.0;
     let n = u128::from(base) | u128::from(delta) << 51;
-    n.to_le_bytes()[0..11].try_into().unwrap()
+    n.to_le_bytes()[0..12].try_into().unwrap()
   }
 }
 
@@ -531,6 +531,8 @@ impl Entry for Txid {
 
 #[cfg(test)]
 mod tests {
+  use mp4::HEADER_SIZE;
+
   use super::*;
 
   #[test]
@@ -962,5 +964,25 @@ mod tests {
       .supply(),
       1001
     );
+  }
+
+  #[test]
+  fn sat_range_entry() {
+    let test_values = vec![
+      (3805000000000, 10000000000),
+      (4805000000000, 1000000000000),
+      (0, 8800000000),
+    ];
+
+    for (offset, reward) in test_values {
+      let stored = SatRange::store((offset, offset + reward));
+      let (key, value) = SatRange::load(stored);
+
+      let decoded_height_offset = key;
+      let decoded_reward = value - key;
+
+      assert_eq!(decoded_reward, reward);
+      assert_eq!(decoded_height_offset, offset);
+    }
   }
 }

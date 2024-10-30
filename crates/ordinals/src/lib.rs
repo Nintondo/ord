@@ -12,8 +12,6 @@ use {
     Network, OutPoint, ScriptBuf, Transaction,
   },
   derive_more::{Display, FromStr},
-  rand::Rng,
-  rand_mt::Mt19937GenRand32,
   sats::SatsSubsidy,
   serde::{Deserialize, Serialize},
   serde_with::{DeserializeFromStr, SerializeDisplay},

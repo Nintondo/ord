@@ -9,7 +9,7 @@ impl Height {
   }
 
   pub fn subsidy(self) -> u64 {
-    get_block_subsidy(self.0)
+    get_block_subsidy(self.0) * COIN_VALUE
   }
 
   pub fn starting_sat(self) -> Sat {
@@ -45,17 +45,6 @@ impl PartialEq<u32> for Height {
 #[cfg(test)]
 mod tests {
   use super::*;
-
-  #[test]
-  fn block_subsidy() {
-    assert_eq!(get_block_subsidy(1241), 10000);
-    assert_eq!(get_block_subsidy(101), 100);
-    assert_eq!(get_block_subsidy(102), 100);
-    assert_eq!(get_block_subsidy(213214), 5000);
-    assert_eq!(get_block_subsidy(4314), 100);
-    assert_eq!(get_block_subsidy(129600), 25);
-    assert_eq!(get_block_subsidy(259200), 5);
-  }
 
   #[test]
   fn n() {

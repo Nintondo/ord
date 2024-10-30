@@ -1662,7 +1662,7 @@ impl Index {
       let sat_ranges = utxo_entry.value().parse(self).sat_ranges();
 
       let mut offset = 0;
-      for chunk in sat_ranges.chunks_exact(11) {
+      for chunk in sat_ranges.chunks_exact(12) {
         let (start, end) = SatRange::load(chunk.try_into().unwrap());
         if start <= sat && sat < end {
           return Ok(Some(SatPoint {
@@ -1702,7 +1702,7 @@ impl Index {
       let sat_ranges = utxo_entry.value().parse(self).sat_ranges();
 
       let mut offset = 0;
-      for sat_range in sat_ranges.chunks_exact(11) {
+      for sat_range in sat_ranges.chunks_exact(12) {
         let (start, end) = SatRange::load(sat_range.try_into().unwrap());
 
         if end > range_start && start < range_end {
@@ -1747,7 +1747,7 @@ impl Index {
             .value()
             .parse(self)
             .sat_ranges()
-            .chunks_exact(11)
+            .chunks_exact(12)
             .map(|chunk| SatRange::load(chunk.try_into().unwrap()))
             .collect::<Vec<(u64, u64)>>()
         }),

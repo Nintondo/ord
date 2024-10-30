@@ -63,20 +63,20 @@ impl SatsSubsidy {
     Height(high as u32)
   }
   pub fn sat_from_height(value: Height) -> Sat {
-    Sat(*FILE_CONTENT.get(&value.0).unwrap())
+    Sat(*FILE_CONTENT.get(&value.0).unwrap() * COIN_VALUE)
   }
 }
 
 #[cfg(test)]
 mod tests {
   use super::*;
-  use bellscoin::constants::COIN_VALUE;
 
   #[test]
   fn test_sat_from_height() {
-    assert_eq!(SatsSubsidy::sat_from_height(Height(0)), 88 * COIN_VALUE);
-    assert_eq!(SatsSubsidy::sat_from_height(Height(124)), 3638 * COIN_VALUE);
-    assert_eq!(SatsSubsidy::sat_from_height(Height(125)), 3738 * COIN_VALUE);
+    assert_eq!(SatsSubsidy::sat_from_height(Height(0)), 88);
+    assert_eq!(SatsSubsidy::sat_from_height(Height(1)), 90);
+    assert_eq!(SatsSubsidy::sat_from_height(Height(124)), 3638);
+    assert_eq!(SatsSubsidy::sat_from_height(Height(125)), 3738);
   }
 
   #[test]

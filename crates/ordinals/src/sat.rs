@@ -33,7 +33,7 @@ impl Sat {
   }
 
   pub fn third(self) -> u64 {
-    self.epoch_position() % get_block_subsidy(SatsSubsidy::height_from_sat(self).0)
+    self.epoch_position() % get_block_subsidy(SatsSubsidy::height_from_sat(self).0) * COIN_VALUE
   }
 
   pub fn epoch_position(self) -> u64 {
@@ -51,7 +51,9 @@ impl Sat {
   /// Is this sat common or not?  Much faster than `Sat::rarity()`.
   pub fn common(self) -> bool {
     let epoch = self.epoch();
-    (self.0 - epoch.starting_sat().0) % get_block_subsidy(SatsSubsidy::height_from_sat(self).0) != 0
+    (self.0 - epoch.starting_sat().0) % get_block_subsidy(SatsSubsidy::height_from_sat(self).0)
+      * COIN_VALUE
+      != 0
   }
 
   pub fn coin(self) -> bool {
