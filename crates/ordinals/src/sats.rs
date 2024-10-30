@@ -31,10 +31,6 @@ impl SatsSubsidy {
     let mut low = 0;
     let mut high = 800_000;
 
-    if value.0 <= 88 * COIN_VALUE {
-      return Height(0);
-    }
-
     while low <= high {
       let mid = (low + high) / 2;
       let mid_height = Height(mid as u32);
@@ -49,19 +45,14 @@ impl SatsSubsidy {
       }
     }
 
-    // After binary search, low should be the smallest index where the value is greater than target_value
-    if low < 800_000 {
-      let low_height = Height(low as u32);
-      let low_value = Self::sat_from_height(low_height).0;
-
-      if low_value >= value.0 {
-        return low_height;
-      }
+    // Return the highest height that does not exceed the value
+    if high < 0 {
+      Height(0)
+    } else {
+      Height(high as u32)
     }
-
-    // If no exact match is found, return the highest height
-    Height(high as u32)
   }
+
   pub fn sat_from_height(value: Height) -> Sat {
     Sat(*FILE_CONTENT.get(&value.0).unwrap() * COIN_VALUE)
   }
@@ -73,19 +64,20 @@ mod tests {
 
   #[test]
   fn test_sat_from_height() {
-    assert_eq!(SatsSubsidy::sat_from_height(Height(0)), 88);
-    assert_eq!(SatsSubsidy::sat_from_height(Height(1)), 90);
-    assert_eq!(SatsSubsidy::sat_from_height(Height(124)), 3638);
-    assert_eq!(SatsSubsidy::sat_from_height(Height(125)), 3738);
+    assert_eq!(SatsSubsidy::sat_from_height(Height(0)), 0);
+    assert_eq!(SatsSubsidy::sat_from_height(Height(1)), 88 * COIN_VALUE);
+    assert_eq!(SatsSubsidy::sat_from_height(Height(124)), 3588 * COIN_VALUE);
+    assert_eq!(SatsSubsidy::sat_from_height(Height(125)), 3638 * COIN_VALUE);
   }
 
   #[test]
   fn test_height_from_sat() {
-    assert_eq!(SatsSubsidy::height_from_sat(Sat(363800000000)).0, 124);
+    assert_eq!(SatsSubsidy::height_from_sat(Sat(363799999999)).0, 124);
+    assert_eq!(SatsSubsidy::height_from_sat(Sat(363800000000)).0, 125);
     assert_eq!(SatsSubsidy::height_from_sat(Sat(363800000001)).0, 125);
-    assert_eq!(SatsSubsidy::height_from_sat(Sat(373799999999)).0, 125);
-    assert_eq!(SatsSubsidy::height_from_sat(Sat(373800000000)).0, 125);
     assert_eq!(SatsSubsidy::height_from_sat(Sat(0)).0, 0);
-    assert_eq!(SatsSubsidy::height_from_sat(Sat(8800000001)).0, 1);
+    assert_eq!(SatsSubsidy::height_from_sat(Sat(8800000000)).0, 1);
+    assert_eq!(SatsSubsidy::height_from_sat(Sat(8799999999)).0, 0);
+    assert_eq!(SatsSubsidy::height_from_sat(Sat(8799999998)).0, 0);
   }
 }
