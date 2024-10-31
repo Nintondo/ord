@@ -1,4 +1,4 @@
-const AUXPOW_START_HEIGHT: u32 = 100_000;
+const AUXPOW_START_HEIGHT: u32 = 188_000;
 const AUXPOW_THRESHOLD: u32 = 1000;
 
 struct MT19937 {
@@ -157,5 +157,6 @@ mod tests {
     assert_eq!(get_block_subsidy(4314), 100);
     assert_eq!(get_block_subsidy(129600), 25);
     assert_eq!(get_block_subsidy(259200), 5);
+    assert_eq!(get_block_subsidy(100_000), 50);
   }
 }
