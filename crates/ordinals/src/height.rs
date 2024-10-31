@@ -13,10 +13,7 @@ impl Height {
   }
 
   pub fn starting_sat(self) -> Sat {
-    let epoch = Epoch::from(self);
-    let epoch_starting_subsidy = SatsSubsidy::sat_from_height(epoch.starting_height());
-    let current_subsidy = SatsSubsidy::sat_from_height(self);
-    Sat(current_subsidy.0 - epoch_starting_subsidy.0)
+    SatsSubsidy::sat_from_height(self)
   }
 }
 
