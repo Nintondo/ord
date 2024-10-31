@@ -32,10 +32,7 @@ use {
   anyhow::{anyhow, bail, ensure, Context, Error},
   bellscoin::{
     address::{Address, NetworkUnchecked},
-    blockdata::{
-      constants::{MAX_SCRIPT_ELEMENT_SIZE, SUBSIDY_HALVING_INTERVAL},
-      locktime::absolute::LockTime,
-    },
+    blockdata::{constants::MAX_SCRIPT_ELEMENT_SIZE, locktime::absolute::LockTime},
     consensus::{self, Decodable, Encodable},
     hash_types::{BlockHash, TxMerkleNode},
     hashes::Hash,
