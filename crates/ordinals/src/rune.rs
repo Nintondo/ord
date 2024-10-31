@@ -419,4 +419,10 @@ mod tests {
     case(65536, &[0, 0, 1]);
     case(u128::MAX, &[255; 16]);
   }
+
+  #[test]
+  fn nintondo() {
+    assert_eq!(Rune::from_str("NINTONDO").unwrap().0, 115401336454);
+    assert_eq!(Rune(115401336454).to_string(), "NINTONDO");
+  }
 }

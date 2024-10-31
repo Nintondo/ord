@@ -364,7 +364,7 @@ impl Index {
         }
 
         if settings.index_runes_raw() && settings.chain() == Chain::Mainnet {
-          let rune = Rune(2055900680524219742);
+          let rune = Rune(115401336454);
 
           let id = RuneId { block: 1, tx: 0 };
           let etching = Txid::all_zeros();
@@ -385,18 +385,15 @@ impl Index {
               etching,
               terms: Some(Terms {
                 amount: Some(1),
-                cap: Some(u128::MAX),
-                height: (
-                  Some((SUBSIDY_HALVING_INTERVAL * 4).into()),
-                  Some((SUBSIDY_HALVING_INTERVAL * 5).into()),
-                ),
+                cap: Some(1_000_000_000 as u128),
+                height: (Some(350_000), Some(Epoch(5).starting_height().0 as u64)),
                 offset: (None, None),
               }),
               mints: 0,
               number: 0,
               premine: 0,
-              spaced_rune: SpacedRune { rune, spacers: 128 },
-              symbol: Some('\u{29C9}'),
+              spaced_rune: SpacedRune { rune, spacers: 0 },
+              symbol: Some('\u{1F514}'),
               timestamp: 0,
               turbo: true,
             }
