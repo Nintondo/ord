@@ -6,10 +6,10 @@ pub struct Epoch(pub u32);
 impl Epoch {
   pub const STARTING_SATS: [Sat; 6] = [
     Sat(0),
-    Sat(20200000000),
-    Sat(3644007700000000),
-    Sat(5428605700000000),
-    Sat(5824936400000000),
+    Sat(28800000000),
+    Sat(3774066300000000),
+    Sat(5619521800000000),
+    Sat(6027899500000000),
     Sat(Sat::SUPPLY),
   ];
   pub const FIRST_POST_SUBSIDY: Epoch = Self(6);
