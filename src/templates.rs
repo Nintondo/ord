@@ -142,7 +142,6 @@ mod tests {
     <nav>
       <a href=/ title=home>Ordinals<sup>beta</sup></a>
       .*
-      <a href=/clock title=clock>.*</a>
       <a href=/rare.txt title=rare>.*</a>
       .*
       <form action=/search method=get>

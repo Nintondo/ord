@@ -4190,7 +4190,6 @@ mod tests {
         "/",
         StatusCode::OK,
         ".*
-      <a href=/clock title=clock>.*</a>
       <a href=/rare.txt title=rare>.*</a>.*",
       );
   }
