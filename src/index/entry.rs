@@ -531,7 +531,6 @@ impl Entry for Txid {
 
 #[cfg(test)]
 mod tests {
-  use mp4::HEADER_SIZE;
 
   use super::*;
 

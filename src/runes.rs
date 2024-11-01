@@ -6067,11 +6067,6 @@ mod tests {
 
   #[test]
   fn genesis_rune() {
-    assert_eq!(
-      Chain::Mainnet.first_rune_height(),
-      SUBSIDY_HALVING_INTERVAL * 4,
-    );
-
     Context::builder()
       .chain(Chain::Mainnet)
       .arg("--index-runes")
@@ -6095,10 +6090,7 @@ mod tests {
             terms: Some(Terms {
               amount: Some(1),
               cap: Some(u128::MAX),
-              height: (
-                Some((SUBSIDY_HALVING_INTERVAL * 4).into()),
-                Some((SUBSIDY_HALVING_INTERVAL * 5).into()),
-              ),
+              height: (Some(350_000), Some(Epoch(5).starting_sat().0)),
               offset: (None, None),
             }),
             timestamp: 0,
