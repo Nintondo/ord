@@ -111,7 +111,7 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 Clone the `ord` repo:
 
 ```
-git clone https://github.com/ordinals/ord.git
+git clone https://github.com/Nintondo/ord.git
 cd ord
 ```
 
@@ -131,22 +131,6 @@ Once built, the `ord` binary can be found at `./target/release/ord`.
 
 `ord` requires `rustc` version 1.76.0 or later. Run `rustc --version` to ensure
 you have this version. Run `rustup update` to get the latest stable release.
-
-### Docker
-
-A Docker image can be built with:
-
-```
-docker build -t ordinals/ord .
-```
-
-### Homebrew
-
-`ord` is available in [Homebrew](https://brew.sh/):
-
-```
-brew install ord
-```
 
 ### Debian Package
 
