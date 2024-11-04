@@ -15,49 +15,43 @@ See [the docs](https://docs.ordinals.com) for documentation and guides.
 See [the BIP](bip.mediawiki) for a technical description of the assignment and
 transfer algorithm.
 
-See [the project board](https://github.com/orgs/ordinals/projects/1) for
+See [the project board](https://github.com/Nintondo/ord/issues) for
 currently prioritized issues.
 
-Join [the Discord server](https://discord.gg/87cjuz4FYg) to chat with fellow
+Join [the Discord server](https://t.co/4DCHZEdSSE) to chat with fellow
 ordinal degenerates.
 
 Donate
 ------
 
-Ordinals is open-source and community funded. The current lead maintainer of
-`ord` is [raphjaph](https://github.com/raphjaph/). Raph's work on `ord` is
-entirely funded by donations. If you can, please consider donating!
+Bellscoin Ordinals is open-source and community funded. 
+
+If you can, please consider donating!
 
 The donation address is
-[bc1qguzk63exy7h5uygg8m2tcenca094a8t464jfyvrmr0s6wkt74wls3zr5m3](https://mempool.space/address/bc1qguzk63exy7h5uygg8m2tcenca094a8t464jfyvrmr0s6wkt74wls3zr5m3).
+[bel1qs0k3zuv7achxquxhs3rqjjc93tc3hc6dfmnv2z](https://nintondo.io/explorer/address/bel1qs0k3zuv7achxquxhs3rqjjc93tc3hc6dfmnv2z).
 
-This address is 2 of 4 multisig wallet with keys held by
-[raphjaph](https://twitter.com/raphjaph),
-[erin](https://twitter.com/realizingerin),
-[rodarmor](https://twitter.com/rodarmor), and
-[ordinally](https://twitter.com/veryordinally).
-
-Bitcoin received will go towards funding maintenance and development of `ord`,
-as well as hosting costs for [ordinals.com](https://ordinals.com).
+Bellscoin received will go towards funding maintenance and development of `ord`,
+as well as hosting costs for [ord.nintondo.io](https://ord.nintondo.io).
 
 Thank you for donating!
 
 Wallet
 ------
 
-`ord` relies on Bitcoin Core for private key management and transaction signing.
+`ord` relies on Bells Core for private key management and transaction signing.
 This has a number of implications that you must understand in order to use
 `ord` wallet commands safely:
 
-- Bitcoin Core is not aware of inscriptions and does not perform sat
-  control. Using `bitcoin-cli` commands and RPC calls with `ord` wallets may
+- Bells Core is not aware of inscriptions and does not perform sat
+  control. Using `bells-cli` commands and RPC calls with `ord` wallets may
   lead to loss of inscriptions.
 
 - `ord wallet` commands automatically load the `ord` wallet given by the
   `--name` option, which defaults to 'ord'. Keep in mind that after running
   an `ord wallet` command, an `ord` wallet may be loaded.
 
-- Because `ord` has access to your Bitcoin Core wallets, `ord` should not be
+- Because `ord` has access to your Bells Core wallets, `ord` should not be
   used with wallets that contain a material amount of funds. Keep ordinal and
   cardinal wallets segregated.
 
@@ -72,14 +66,8 @@ Installation
 ------------
 
 `ord` is written in Rust and can be built from
-[source](https://github.com/ordinals/ord). Pre-built binaries are available on the
-[releases page](https://github.com/ordinals/ord/releases).
-
-You can install the latest pre-built binary from the command line with:
-
-```sh
-curl --proto '=https' --tlsv1.2 -fsLS https://ordinals.com/install.sh | bash -s
-```
+[source](https://github.com/Nintondo/ord). Pre-built binaries are available on the
+[releases page](https://github.com/Nintondo/ord/releases).
 
 Once `ord` is installed, you should be able to run `ord --version` on the
 command line.
@@ -191,25 +179,25 @@ instance in [mockcore](./crates/mockcore)
 Syncing
 -------
 
-`ord` requires a synced `bitcoind` node with `-txindex` to build the index of
+`ord` requires a synced `bellsd` node with `-txindex` to build the index of
 satoshi locations. `ord` communicates with `bitcoind` via RPC.
 
-If `bitcoind` is run locally by the same user, without additional
+If `bellsd` is run locally by the same user, without additional
 configuration, `ord` should find it automatically by reading the `.cookie` file
-from `bitcoind`'s datadir, and connecting using the default RPC port.
+from `bellsd`'s datadir, and connecting using the default RPC port.
 
-If `bitcoind` is not on mainnet, is not run by the same user, has a non-default
+If `bellsd` is not on mainnet, is not run by the same user, has a non-default
 datadir, or a non-default port, you'll need to pass additional flags to `ord`.
 See `ord --help` for details.
 
-`bitcoind` RPC Authentication
+`bellsd` RPC Authentication
 -----------------------------
 
-`ord` makes RPC calls to `bitcoind`, which usually requires a username and
+`ord` makes RPC calls to `bellsd`, which usually requires a username and
 password.
 
 By default, `ord` looks a username and password in the cookie file created by
-`bitcoind`.
+`bellsd`.
 
 The cookie file path can be configured using `--cookie-file`:
 
