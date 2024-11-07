@@ -130,7 +130,7 @@ pub fn get_block_subsidy(n_height: u32) -> u64 {
         990..=1000 => 500,
         940..=989 => 50,
         840..=939 => 25,
-        500..=699 => 10,
+        500..=839 => 10,
         _ => 5,
       };
     }
@@ -145,7 +145,6 @@ mod tests {
 
   #[test]
   fn block_subsidy() {
-    assert_eq!(get_block_subsidy(1241), 10000);
     assert_eq!(get_block_subsidy(101), 100);
     assert_eq!(get_block_subsidy(102), 100);
     assert_eq!(get_block_subsidy(113), 500);
@@ -153,10 +152,12 @@ mod tests {
     assert_eq!(get_block_subsidy(318), 100);
     assert_eq!(get_block_subsidy(319), 10_000);
     assert_eq!(get_block_subsidy(444), 500);
-    assert_eq!(get_block_subsidy(213214), 5000);
+    assert_eq!(get_block_subsidy(1241), 10000);
     assert_eq!(get_block_subsidy(4314), 100);
-    assert_eq!(get_block_subsidy(129600), 25);
-    assert_eq!(get_block_subsidy(259200), 5);
     assert_eq!(get_block_subsidy(100_000), 50);
+    assert_eq!(get_block_subsidy(129600), 25);
+    assert_eq!(get_block_subsidy(213214), 5000);
+    assert_eq!(get_block_subsidy(259200), 5);
+    assert_eq!(get_block_subsidy(259211), 10);
   }
 }
