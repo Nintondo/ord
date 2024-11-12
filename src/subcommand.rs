@@ -75,10 +75,10 @@ impl Subcommand {
         server.run(settings, index, handle)
       }
       Self::Settings => settings::run(settings),
-      Self::Subsidy(subsidy) => subsidy.run(),
-      Self::Supply => supply::run(),
+      Self::Subsidy(subsidy) => subsidy.run(settings),
+      Self::Supply => supply::run(settings),
       Self::Teleburn(teleburn) => teleburn.run(),
-      Self::Traits(traits) => traits.run(),
+      Self::Traits(traits) => traits.run(settings),
       Self::Wallet(wallet) => wallet.run(settings),
       Self::Wallets => wallets::run(settings),
     }

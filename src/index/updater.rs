@@ -511,7 +511,7 @@ impl<'index> Updater<'index> {
       inscription_number_to_sequence_number: &mut inscription_number_to_sequence_number,
       lost_sats,
       next_sequence_number,
-      reward: Height(self.height).subsidy(),
+      reward: Height(self.height).subsidy(self.index.settings.chain().network()),
       sat_to_sequence_number: &mut sat_to_sequence_number,
       sequence_number_to_children: &mut sequence_number_to_children,
       sequence_number_to_entry: &mut sequence_number_to_inscription_entry,
@@ -528,9 +528,12 @@ impl<'index> Updater<'index> {
 
     if self.index.index_sats {
       let h = Height(self.height);
-      if h.subsidy() > 0 {
+      if h.subsidy(self.index.settings.chain().network()) > 0 {
         let start = h.starting_sat();
-        coinbase_inputs.extend(SatRange::store((start.n(), (start + h.subsidy()).n())));
+        coinbase_inputs.extend(SatRange::store((
+          start.n(),
+          (start + h.subsidy(self.index.settings.chain().network())).n(),
+        )));
         self.sat_ranges_since_flush += 1;
       }
     }
@@ -670,7 +673,7 @@ impl<'index> Updater<'index> {
 
       for chunk in lost_sat_ranges.chunks_exact(12) {
         let (start, end) = SatRange::load(chunk.try_into().unwrap());
-        if !Sat(start).common() {
+        if !Sat(start).common(self.index.settings.chain().network()) {
           sat_to_satpoint.insert(
             &start,
             &SatPoint {
@@ -774,7 +777,7 @@ impl<'index> Updater<'index> {
           )
         });
 
-        if !Sat(range.0).common() {
+        if !Sat(range.0).common(self.index.settings.chain().network()) {
           sat_to_satpoint.insert(
             &range.0,
             &SatPoint {

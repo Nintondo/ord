@@ -1,3 +1,5 @@
+use bellscoin::Network;
+
 const AUXPOW_START_HEIGHT: u32 = 144_000;
 const AUXPOW_THRESHOLD: u32 = 1000;
 
@@ -94,7 +96,7 @@ fn generate_mt_random(seed: u32, range: u32) -> u32 {
   }
 }
 
-pub fn get_block_subsidy(n_height: u32) -> u64 {
+pub fn get_block_subsidy(n_height: u32, network: Network) -> u64 {
   let mut n_subsidy = 2;
 
   if n_height == 0 {
@@ -103,37 +105,41 @@ pub fn get_block_subsidy(n_height: u32) -> u64 {
 
   if n_height < 101 {
     return n_subsidy; // First 100 blocks have minimal rewards.
-  } else if n_height >= AUXPOW_START_HEIGHT && n_height < AUXPOW_START_HEIGHT + AUXPOW_THRESHOLD {
-    return n_subsidy;
-  } else {
-    let rand = generate_mt_random(n_height, 1000);
-    if n_height < 129600 {
-      n_subsidy = match rand {
-        990..=1000 => 10000,
-        940..=989 => 1000,
-        840..=939 => 500,
-        700..=839 => 250,
-        500..=699 => 100,
-        _ => 50,
-      };
-    } else if n_height < 259200 {
-      n_subsidy = match rand {
-        990..=1000 => 5000,
-        940..=989 => 500,
-        840..=939 => 250,
-        700..=839 => 125,
-        500..=699 => 50,
-        _ => 25,
-      };
-    } else if n_height < 518400 {
-      n_subsidy = match rand {
-        990..=1000 => 500,
-        940..=989 => 50,
-        840..=939 => 25,
-        500..=839 => 10,
-        _ => 5,
-      };
+  }
+
+  if network == Network::Bellscoin {
+    if n_height >= AUXPOW_START_HEIGHT && n_height < AUXPOW_START_HEIGHT + AUXPOW_THRESHOLD {
+      return n_subsidy;
     }
+  }
+
+  let rand = generate_mt_random(n_height, 1000);
+  if n_height < 129600 {
+    n_subsidy = match rand {
+      990..=1000 => 10000,
+      940..=989 => 1000,
+      840..=939 => 500,
+      700..=839 => 250,
+      500..=699 => 100,
+      _ => 50,
+    };
+  } else if n_height < 259200 {
+    n_subsidy = match rand {
+      990..=1000 => 5000,
+      940..=989 => 500,
+      840..=939 => 250,
+      700..=839 => 125,
+      500..=699 => 50,
+      _ => 25,
+    };
+  } else if n_height < 518400 {
+    n_subsidy = match rand {
+      990..=1000 => 500,
+      940..=989 => 50,
+      840..=939 => 25,
+      500..=839 => 10,
+      _ => 5,
+    };
   }
 
   n_subsidy
@@ -143,21 +149,26 @@ pub fn get_block_subsidy(n_height: u32) -> u64 {
 mod tests {
   use super::*;
 
+  fn subsidy_mainnet(n_height: u32) -> u64 {
+    get_block_subsidy(n_height, Network::Bellscoin)
+  }
+
   #[test]
   fn block_subsidy() {
-    assert_eq!(get_block_subsidy(101), 100);
-    assert_eq!(get_block_subsidy(102), 100);
-    assert_eq!(get_block_subsidy(113), 500);
-    assert_eq!(get_block_subsidy(119), 500);
-    assert_eq!(get_block_subsidy(318), 100);
-    assert_eq!(get_block_subsidy(319), 10_000);
-    assert_eq!(get_block_subsidy(444), 500);
-    assert_eq!(get_block_subsidy(1241), 10000);
-    assert_eq!(get_block_subsidy(4314), 100);
-    assert_eq!(get_block_subsidy(100_000), 50);
-    assert_eq!(get_block_subsidy(129600), 25);
-    assert_eq!(get_block_subsidy(213214), 5000);
-    assert_eq!(get_block_subsidy(259200), 5);
-    assert_eq!(get_block_subsidy(259211), 10);
+    assert_eq!(subsidy_mainnet(101), 100);
+    assert_eq!(subsidy_mainnet(102), 100);
+    assert_eq!(subsidy_mainnet(113), 500);
+    assert_eq!(subsidy_mainnet(119), 500);
+    assert_eq!(subsidy_mainnet(318), 100);
+    assert_eq!(subsidy_mainnet(319), 10_000);
+    assert_eq!(subsidy_mainnet(444), 500);
+    assert_eq!(subsidy_mainnet(1241), 10000);
+    assert_eq!(subsidy_mainnet(4314), 100);
+    assert_eq!(subsidy_mainnet(100_000), 50);
+    assert_eq!(subsidy_mainnet(129600), 25);
+    assert_eq!(subsidy_mainnet(213214), 5000);
+    assert_eq!(subsidy_mainnet(259200), 5);
+    assert_eq!(subsidy_mainnet(259211), 10);
+    assert_eq!(subsidy_mainnet(143877), 25)
   }
 }

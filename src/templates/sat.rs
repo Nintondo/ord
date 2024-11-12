@@ -6,6 +6,7 @@ pub(crate) struct SatHtml {
   pub(crate) inscriptions: Vec<InscriptionId>,
   pub(crate) sat: Sat,
   pub(crate) satpoint: Option<SatPoint>,
+  pub(crate) network: Network,
 }
 
 impl PageContent for SatHtml {
@@ -26,6 +27,7 @@ mod tests {
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
         inscriptions: Vec::new(),
+        network: Network::Bellscoin
       },
       "
         <h1>Sat 0</h1>
@@ -62,6 +64,7 @@ mod tests {
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
         inscriptions: Vec::new(),
+        network: Network::Bellscoin
       },
       "
         <h1>Sat 2099999997689999</h1>
@@ -97,6 +100,7 @@ mod tests {
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
         inscriptions: Vec::new(),
+        network: Network::Bellscoin
       },
       r"<h1>Sat 1</h1>.*<a class=prev href=/sat/0>prev</a>\n<a class=next href=/sat/2>next</a>.*",
     );
@@ -110,6 +114,7 @@ mod tests {
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
         inscriptions: vec![inscription_id(1)],
+        network: Network::Bellscoin
       },
       "
         <h1>Sat 0</h1>
@@ -131,6 +136,7 @@ mod tests {
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
         inscriptions: vec![inscription_id(1), inscription_id(2)],
+        network: Network::Bellscoin
       },
       "
         <h1>Sat 0</h1>
@@ -153,6 +159,7 @@ mod tests {
         satpoint: None,
         blocktime: Blocktime::confirmed(0),
         inscriptions: Vec::new(),
+        network: Network::Bellscoin
       },
       r"<h1>Sat 2099999997689999</h1>.*<a class=prev href=/sat/2099999997689998>prev</a>\nnext.*",
     );
@@ -166,6 +173,7 @@ mod tests {
         satpoint: Some(satpoint(1, 0)),
         blocktime: Blocktime::confirmed(0),
         inscriptions: Vec::new(),
+        network: Network::Bellscoin
       },
       "<h1>Sat 0</h1>.*<dt>location</dt><dd class=monospace>1{64}:1:0</dd>.*",
     );

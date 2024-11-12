@@ -87,7 +87,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
     for (input_index, txin) in tx.input.iter().enumerate() {
       // skip subsidy since no inscriptions possible
       if txin.previous_output.is_null() {
-        total_input_value += Height(self.height).subsidy();
+        total_input_value += Height(self.height).subsidy(index.settings.chain().network());
         continue;
       }
 

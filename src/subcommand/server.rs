@@ -533,12 +533,12 @@ impl Server {
       Ok(if accept_json {
         Json(api::Sat {
           number: sat.0,
-          decimal: sat.decimal().to_string(),
+          decimal: sat.decimal(server_config.chain.network()).to_string(),
           name: sat.name(),
           block: sat.height().0,
           cycle: sat.cycle(),
           epoch: sat.epoch().0,
-          offset: sat.third(),
+          offset: sat.third(server_config.chain.network()),
           rarity: sat.rarity(),
           percentile: sat.percentile(),
           satpoint,
@@ -553,6 +553,7 @@ impl Server {
           satpoint,
           blocktime,
           inscriptions,
+          network: server_config.chain.network(),
         }
         .page(server_config)
         .into_response()

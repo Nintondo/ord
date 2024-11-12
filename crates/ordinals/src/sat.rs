@@ -32,16 +32,17 @@ impl Sat {
     self.into()
   }
 
-  pub fn third(self) -> u64 {
-    self.epoch_position() % (get_block_subsidy(SatsSubsidy::height_from_sat(self).0) * COIN_VALUE)
+  pub fn third(self, network: Network) -> u64 {
+    self.epoch_position()
+      % (get_block_subsidy(SatsSubsidy::height_from_sat(self).0, network) * COIN_VALUE)
   }
 
   pub fn epoch_position(self) -> u64 {
     self.0 - self.epoch().starting_sat().0
   }
 
-  pub fn decimal(self) -> DecimalSat {
-    self.into()
+  pub fn decimal(self, network: Network) -> DecimalSat {
+    DecimalSat::from_sat(self, network)
   }
 
   pub fn rarity(self) -> Rarity {
@@ -49,10 +50,10 @@ impl Sat {
   }
 
   /// Is this sat common or not?  Much faster than `Sat::rarity()`.
-  pub fn common(self) -> bool {
+  pub fn common(self, network: Network) -> bool {
     let epoch = self.epoch();
     (self.0 - epoch.starting_sat().0)
-      % (get_block_subsidy(SatsSubsidy::height_from_sat(self).0) * COIN_VALUE)
+      % (get_block_subsidy(SatsSubsidy::height_from_sat(self).0, network) * COIN_VALUE)
       != 0
   }
 
@@ -112,7 +113,7 @@ impl Sat {
     Ok(Sat(Self::SUPPLY - x))
   }
 
-  fn from_decimal(decimal: &str) -> Result<Self, Error> {
+  fn from_decimal(decimal: &str, network: Network) -> Result<Self, Error> {
     let (height, offset) = decimal
       .split_once('.')
       .ok_or_else(|| ErrorKind::MissingPeriod.error(decimal))?;
@@ -127,7 +128,7 @@ impl Sat {
       .parse::<u64>()
       .map_err(|source| ErrorKind::ParseInt { source }.error(decimal))?;
 
-    if offset >= height.subsidy() {
+    if offset >= height.subsidy(network) {
       return Err(ErrorKind::BlockOffset.error(decimal));
     }
 
@@ -260,7 +261,7 @@ impl FromStr for Sat {
     } else if s.contains('%') {
       Self::from_percentile(s)
     } else if s.contains('.') {
-      Self::from_decimal(s)
+      Self::from_decimal(s, Network::Bellscoin)
     } else {
       let sat = Self(
         s.parse()
@@ -328,15 +329,21 @@ mod tests {
 
   #[test]
   fn subsidy_position() {
-    assert_eq!(Sat(0).third(), 0);
-    assert_eq!(Sat(1).third(), 1);
+    assert_eq!(Sat(0).third(Network::Bellscoin), 0);
+    assert_eq!(Sat(1).third(Network::Bellscoin), 1);
     assert_eq!(
-      Sat(Height(0).subsidy() - 1).third(),
-      Height(0).subsidy() - 1
+      Sat(Height(0).subsidy(Network::Bellscoin) - 1).third(Network::Bellscoin),
+      Height(0).subsidy(Network::Bellscoin) - 1
     );
-    assert_eq!(Sat(Height(0).subsidy()).third(), 0);
-    assert_eq!(Sat(Height(0).subsidy() + 1).third(), 1);
-    assert_eq!(Sat::LAST.third(), 0);
+    assert_eq!(
+      Sat(Height(0).subsidy(Network::Bellscoin)).third(Network::Bellscoin),
+      0
+    );
+    assert_eq!(
+      Sat(Height(0).subsidy(Network::Bellscoin) + 1).third(Network::Bellscoin),
+      1
+    );
+    assert_eq!(Sat::LAST.third(Network::Bellscoin), 0);
   }
 
   #[test]
@@ -344,7 +351,7 @@ mod tests {
     let mut mined = 0;
 
     for height in 0.. {
-      let subsidy = Height(height).subsidy();
+      let subsidy = Height(height).subsidy(Network::Bellscoin);
 
       if subsidy == 0 {
         break;
@@ -421,10 +428,13 @@ mod tests {
 
   #[test]
   fn third() {
-    assert_eq!(Sat(0).third(), 0);
-    assert_eq!(Sat(50 * COIN_VALUE - 1).third(), 4999999999);
-    assert_eq!(Sat(50 * COIN_VALUE).third(), 0);
-    assert_eq!(Sat(50 * COIN_VALUE + 1).third(), 1);
+    assert_eq!(Sat(0).third(Network::Bellscoin), 0);
+    assert_eq!(
+      Sat(50 * COIN_VALUE - 1).third(Network::Bellscoin),
+      4999999999
+    );
+    assert_eq!(Sat(50 * COIN_VALUE).third(Network::Bellscoin), 0);
+    assert_eq!(Sat(50 * COIN_VALUE + 1).third(Network::Bellscoin), 1);
   }
 
   #[test]
@@ -461,7 +471,10 @@ mod tests {
   fn common() {
     #[track_caller]
     fn case(n: u64) {
-      assert_eq!(Sat(n).common(), Sat(n).rarity() == Rarity::Common);
+      assert_eq!(
+        Sat(n).common(Network::Bellscoin),
+        Sat(n).rarity() == Rarity::Common
+      );
     }
 
     case(0);
@@ -480,7 +493,7 @@ mod tests {
     // uncommon sat.
     for height in 0..Epoch::FIRST_POST_SUBSIDY.starting_height().0 {
       let height = Height(height);
-      assert!(!Sat::common(height.starting_sat()));
+      assert!(!Sat::common(height.starting_sat(), Network::Bellscoin));
     }
   }
 

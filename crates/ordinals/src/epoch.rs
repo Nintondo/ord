@@ -90,7 +90,7 @@ mod tests {
         epoch += 1;
       }
 
-      sat += Height(height).subsidy();
+      sat += Height(height).subsidy(Network::Bellscoin);
     }
 
     assert_eq!(Epoch::STARTING_SATS.as_slice(), epoch_sats);

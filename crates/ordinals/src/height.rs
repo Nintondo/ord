@@ -8,8 +8,8 @@ impl Height {
     self.0
   }
 
-  pub fn subsidy(self) -> u64 {
-    get_block_subsidy(self.0) * COIN_VALUE
+  pub fn subsidy(self, network: Network) -> u64 {
+    get_block_subsidy(self.0, network) * COIN_VALUE
   }
 
   pub fn starting_sat(self) -> Sat {
@@ -75,8 +75,8 @@ mod tests {
 
   #[test]
   fn subsidy() {
-    assert_eq!(Height(0).subsidy(), 5000000000);
-    assert_eq!(Height(1).subsidy(), 5000000000);
+    assert_eq!(Height(0).subsidy(Network::Bellscoin), 5000000000);
+    assert_eq!(Height(1).subsidy(Network::Bellscoin), 5000000000);
   }
 
   #[test]

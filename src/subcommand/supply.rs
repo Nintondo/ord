@@ -8,11 +8,11 @@ pub struct Output {
   pub last_mined_in_block: u32,
 }
 
-pub(crate) fn run() -> SubcommandResult {
+pub(crate) fn run(settings: Settings) -> SubcommandResult {
   let mut last = 0;
 
   loop {
-    if Height(last + 1).subsidy() == 0 {
+    if Height(last + 1).subsidy(settings.chain().network()) == 0 {
       break;
     }
     last += 1;

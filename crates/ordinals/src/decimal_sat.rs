@@ -6,11 +6,11 @@ pub struct DecimalSat {
   pub offset: u64,
 }
 
-impl From<Sat> for DecimalSat {
-  fn from(sat: Sat) -> Self {
+impl DecimalSat {
+  pub fn from_sat(sat: Sat, network: Network) -> Self {
     Self {
       height: sat.height(),
-      offset: sat.third(),
+      offset: sat.third(network),
     }
   }
 }
@@ -28,21 +28,21 @@ mod tests {
   #[test]
   fn decimal() {
     assert_eq!(
-      Sat(0).decimal(),
+      Sat(0).decimal(Network::Bellscoin),
       DecimalSat {
         height: Height(0),
         offset: 0
       }
     );
     assert_eq!(
-      Sat(1).decimal(),
+      Sat(1).decimal(Network::Bellscoin),
       DecimalSat {
         height: Height(0),
         offset: 1
       }
     );
     assert_eq!(
-      Sat(2099999997689999).decimal(),
+      Sat(2099999997689999).decimal(Network::Bellscoin),
       DecimalSat {
         height: Height(6929999),
         offset: 0

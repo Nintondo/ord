@@ -2272,7 +2272,7 @@ impl Index {
             .any(|entry| entry.unwrap().value() == sequence_number));
 
           // we do not track common sats (only the sat ranges)
-          if !Sat(sat).common() {
+          if !Sat(sat).common(self.settings.chain().network()) {
             assert_eq!(
               SatPoint::load(
                 *rtx

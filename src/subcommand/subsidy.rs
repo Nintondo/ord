@@ -14,10 +14,10 @@ pub struct Output {
 }
 
 impl Subsidy {
-  pub(crate) fn run(self) -> SubcommandResult {
+  pub(crate) fn run(self, settings: Settings) -> SubcommandResult {
     let first = self.height.starting_sat();
 
-    let subsidy = self.height.subsidy();
+    let subsidy = self.height.subsidy(settings.chain().network());
 
     if subsidy == 0 {
       bail!("block {} has no subsidy", self.height);

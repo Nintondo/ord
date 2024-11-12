@@ -1,12 +1,12 @@
 <h1>Sat {{ self.sat.n() }}</h1>
 <dl>
-  <dt>decimal</dt><dd>{{ self.sat.decimal() }}</dd>
+  <dt>decimal</dt><dd>{{ self.sat.decimal(self.network) }}</dd>
   <dt>percentile</dt><dd>{{ self.sat.percentile() }}</dd>
   <dt>name</dt><dd>{{ self.sat.name() }}</dd>
   <dt>cycle</dt><dd>{{ self.sat.cycle() }}</dd>
   <dt>epoch</dt><dd>{{ self.sat.epoch() }}</dd>
   <dt>block</dt><dd><a href=/block/{{self.sat.height()}}>{{ self.sat.height() }}</a></dd>
-  <dt>offset</dt><dd>{{ self.sat.third() }}</dd>
+  <dt>offset</dt><dd>{{ self.sat.third(self.network) }}</dd>
   <dt>timestamp</dt><dd><time>{{self.blocktime.timestamp()}}</time>{{self.blocktime.suffix()}}</dd>
   <dt>rarity</dt><dd><span class={{self.sat.rarity()}}>{{ self.sat.rarity() }}</span></dd>
 %% let charms = self.sat.charms();
