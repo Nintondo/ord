@@ -564,12 +564,12 @@ impl Wallet {
   }
 
   pub(crate) fn check_version(client: Client) -> Result<Client> {
-    const MIN_VERSION: usize = 240000;
+    const MIN_VERSION: usize = 3000;
 
     let bitcoin_version = client.version()?;
     if bitcoin_version < MIN_VERSION {
       bail!(
-        "Bitcoin Core {} or newer required, current version is {}",
+        "Bells Core {} or newer required, current version is {}",
         Self::format_bitcoin_core_version(MIN_VERSION),
         Self::format_bitcoin_core_version(bitcoin_version),
       )

@@ -24,7 +24,7 @@ axum = { version = "0.6.1", features = ["http2"] }
 axum-server = "0.5.0"
 base64 = "0.22.0"
 bip39 = "2.0.0"
-bellscoin = { version = "0.30.6", features = ["rand", "serde"] }
+bellscoin = { version = "0.30.7", features = ["rand", "serde"] }
 boilerplate = { version = "1.0.0", features = ["axum"] }
 brotli = "6.0.0"
 chrono = { version = "0.4.19", features = ["serde"] }
@@ -47,7 +47,7 @@ mime = "0.3.16"
 mime_guess = "2.0.4"
 bells-miniscript = "10.2.0"
 mp4 = "0.14.0"
-bellscoincore-rpc = "0.17.3"
+bellscoincore-rpc = "0.17.4"
 ordinals = { version = "0.0.10", path = "crates/ordinals" }
 redb = "2.1.1"
 ref-cast = "1.0.23"
