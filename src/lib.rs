@@ -92,6 +92,13 @@ pub use self::{
   wallet::transaction_builder::{Target, TransactionBuilder},
 };
 
+#[cfg(not(target_env = "msvc"))]
+use jemallocator::Jemalloc;
+
+#[cfg(not(target_env = "msvc"))]
+#[global_allocator]
+static GLOBAL: Jemalloc = Jemalloc;
+
 #[cfg(test)]
 #[macro_use]
 mod test;

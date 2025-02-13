@@ -80,6 +80,7 @@ urlencoding = "2.1.3"
 postcard = { version = "1.0.10", default-features = false, features = [
     "use-std",
 ] }
+jemallocator = "0.5.4"
 
 [dev-dependencies]
 criterion = "0.5.1"
