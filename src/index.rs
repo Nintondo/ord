@@ -384,7 +384,7 @@ impl Index {
               divisibility: 2,
               etching,
               terms: Some(Terms {
-                amount: Some(1),
+                amount: Some(100),
                 cap: Some(1_000_000_000 as u128),
                 height: (Some(350_000), Some(Epoch(5).starting_height().0 as u64)),
                 offset: (None, None),
