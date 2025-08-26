@@ -6,11 +6,11 @@ use {
   },
   super::*,
   crate::templates::{
-    AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, CollectionsHtml, HomeHtml, InputHtml,
-    InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml, PageContent, PageHtml,
-    ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml, PreviewImageHtml,
-    PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml, PreviewUnknownHtml,
-    PreviewVideoHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
+    rune::RuneOutputJson, AddressHtml, BlockHtml, BlocksHtml, ChildrenHtml, CollectionsHtml,
+    HomeHtml, InputHtml, InscriptionHtml, InscriptionsBlockHtml, InscriptionsHtml, OutputHtml,
+    PageContent, PageHtml, ParentsHtml, PreviewAudioHtml, PreviewCodeHtml, PreviewFontHtml,
+    PreviewImageHtml, PreviewMarkdownHtml, PreviewModelHtml, PreviewPdfHtml, PreviewTextHtml,
+    PreviewUnknownHtml, PreviewVideoHtml, RareTxt, RuneHtml, RunesHtml, SatHtml, TransactionHtml,
   },
   axum::{
     body,
@@ -255,6 +255,7 @@ impl Server {
         .route("/runes", get(Self::runes))
         .route("/runes/:page", get(Self::runes_paginated))
         .route("/runes/balances", get(Self::runes_balances))
+        .route("/runes_on_output/:output", get(Self::runes_by_output))
         .route("/sat/:sat", get(Self::sat))
         .route("/satpoint/:satpoint", get(Self::satpoint))
         .route("/search", get(Self::search_by_query))
@@ -776,6 +777,19 @@ impl Server {
         StatusCode::NOT_FOUND.into_response()
       })
     })
+  }
+
+  async fn runes_by_output(
+    Extension(index): Extension<Arc<Index>>,
+    Path(outpoint): Path<OutPoint>,
+  ) -> ServerResult<Response> {
+    let all_runes_jsons = index
+      .get_rune_balances_for_output(outpoint)?
+      .into_iter()
+      .map(|(dune, balances)| RuneOutputJson { dune, balances })
+      .collect::<Vec<_>>();
+
+    Ok(Json(all_runes_jsons).into_response())
   }
 
   async fn home(

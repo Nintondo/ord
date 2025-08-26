@@ -14,6 +14,13 @@ impl PageContent for RuneHtml {
   }
 }
 
+#[derive(Debug, PartialEq, Serialize, Deserialize)]
+pub struct RuneOutputJson {
+  pub(crate) dune: SpacedRune,
+  pub(crate) balances: Pile,
+}
+
+
 #[cfg(test)]
 mod tests {
   use super::*;
