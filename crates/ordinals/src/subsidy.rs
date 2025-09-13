@@ -107,10 +107,10 @@ pub fn get_block_subsidy(n_height: u32, network: Network) -> u64 {
     return n_subsidy; // First 100 blocks have minimal rewards.
   }
 
-  if network == Network::Bellscoin {
-    if n_height >= AUXPOW_START_HEIGHT && n_height < AUXPOW_START_HEIGHT + AUXPOW_THRESHOLD {
-      return n_subsidy;
-    }
+  if network == Network::Bellscoin
+    && (AUXPOW_START_HEIGHT..AUXPOW_START_HEIGHT + AUXPOW_THRESHOLD).contains(&n_height)
+  {
+    return n_subsidy;
   }
 
   let rand = generate_mt_random(n_height, 1000);

@@ -139,7 +139,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
           .unwrap_or(Partial {
             outpoints: vec![],
             inscription_idx: id_counter,
-            vout: input_index as u32,
+            vout: input_index.try_into().unwrap(),
           });
 
         let mut txs = HashMap::<Txid, Transaction>::from_iter([(txid, tx.clone())]);
@@ -156,7 +156,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
 
         partials.outpoints.push(OutPoint {
           txid,
-          vout: input_index as u32,
+          vout: input_index.try_into().unwrap(),
         });
 
         let scripts = partials
@@ -249,7 +249,7 @@ impl<'a, 'tx> InscriptionUpdater<'a, 'tx> {
             self.partials.insert(
               &OutPoint {
                 txid,
-                vout: input_index as u32,
+                vout: input_index.try_into().unwrap(),
               }
               .store(),
               partials.store(),

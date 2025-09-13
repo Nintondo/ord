@@ -2,6 +2,7 @@ use {
   super::*,
   base64::Engine,
   bellscoin::{consensus::Decodable, psbt::Psbt, Witness},
+  bellscoincore_rpc::json::StringOrStringArray,
   std::io::Cursor,
 };
 
@@ -16,7 +17,7 @@ impl Server {
     Self { network, state }
   }
 
-  fn state(&self) -> MutexGuard<State> {
+  fn state<'a>(&'a self) -> MutexGuard<'a, State> {
     self.state.lock().unwrap()
   }
 
@@ -71,7 +72,7 @@ impl Api for Server {
       automatic_pruning: None,
       prune_target_size: None,
       softforks: HashMap::new(),
-      warnings: String::new(),
+      warnings: StringOrStringArray::String(String::new()),
     })
   }
 
@@ -91,7 +92,7 @@ impl Api for Server {
       relay_fee: Amount::from_sat(0),
       incremental_fee: Amount::from_sat(0),
       local_addresses: Vec::new(),
-      warnings: String::new(),
+      warnings: StringOrStringArray::String(String::new()),
     })
   }
 

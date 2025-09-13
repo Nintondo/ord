@@ -164,6 +164,7 @@ impl Server {
       let router = Router::new()
         .route("/", get(Self::home))
         .route("/address/:address", get(Self::address))
+        .route("/address/:address/runes", get(Self::address_runes))
         .route("/block/:query", get(Self::block))
         .route("/blockcount", get(Self::block_count))
         .route("/blockhash", get(Self::block_hash))
@@ -254,7 +255,7 @@ impl Server {
         .route("/rune/:rune", get(Self::rune))
         .route("/runes", get(Self::runes))
         .route("/runes/:page", get(Self::runes_paginated))
-        .route("/runes/balances", get(Self::runes_balances))
+        // .route("/runes/balances", get(Self::runes_balances))
         .route("/runes_on_output/:output", get(Self::runes_by_output))
         .route("/sat/:sat", get(Self::sat))
         .route("/satpoint/:satpoint", get(Self::satpoint))
@@ -751,33 +752,33 @@ impl Server {
     })
   }
 
-  async fn runes_balances(
-    Extension(index): Extension<Arc<Index>>,
-    AcceptJson(accept_json): AcceptJson,
-  ) -> ServerResult {
-    task::block_in_place(|| {
-      Ok(if accept_json {
-        Json(
-          index
-            .get_rune_balance_map()?
-            .into_iter()
-            .map(|(rune, balances)| {
-              (
-                rune,
-                balances
-                  .into_iter()
-                  .map(|(outpoint, pile)| (outpoint, pile.amount))
-                  .collect(),
-              )
-            })
-            .collect::<BTreeMap<SpacedRune, BTreeMap<OutPoint, u128>>>(),
-        )
-        .into_response()
-      } else {
-        StatusCode::NOT_FOUND.into_response()
-      })
-    })
-  }
+  // async fn runes_balances(
+  //   Extension(index): Extension<Arc<Index>>,
+  //   AcceptJson(accept_json): AcceptJson,
+  // ) -> ServerResult {
+  //   task::block_in_place(|| {
+  //     Ok(if accept_json {
+  //       Json(
+  //         index
+  //           .get_rune_balance_map()?
+  //           .into_iter()
+  //           .map(|(rune, balances)| {
+  //             (
+  //               rune,
+  //               balances
+  //                 .into_iter()
+  //                 .map(|(outpoint, pile)| (outpoint, pile.amount))
+  //                 .collect(),
+  //             )
+  //           })
+  //           .collect::<BTreeMap<SpacedRune, BTreeMap<OutPoint, u128>>>(),
+  //       )
+  //       .into_response()
+  //     } else {
+  //       StatusCode::NOT_FOUND.into_response()
+  //     })
+  //   })
+  // }
 
   async fn runes_by_output(
     Extension(index): Extension<Arc<Index>>,
@@ -881,6 +882,28 @@ impl Server {
         .page(server_config)
         .into_response()
       })
+    })
+  }
+
+  async fn address_runes(
+    Extension(server_config): Extension<Arc<ServerConfig>>,
+    Extension(index): Extension<Arc<Index>>,
+    Path(address): Path<Address<NetworkUnchecked>>,
+  ) -> ServerResult {
+    task::block_in_place(|| {
+      if !index.has_address_index() {
+        return Err(ServerError::NotFound(
+          "this server has no address index".to_string(),
+        ));
+      }
+
+      let address = address
+        .require_network(server_config.chain.network())
+        .map_err(|err| ServerError::BadRequest(err.to_string()))?;
+
+      let runes_balances = index.get_address_runes(&address)?;
+
+      Ok(Json(api::AddressRunes(runes_balances)).into_response())
     })
   }
 

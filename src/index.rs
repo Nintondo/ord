@@ -385,8 +385,8 @@ impl Index {
               etching,
               terms: Some(Terms {
                 amount: Some(100),
-                cap: Some(1_000_000_000 as u128),
-                height: (Some(350_000), Some(Epoch(5).starting_height().0 as u64)),
+                cap: Some(1_000_000_000),
+                height: (Some(350_000), Some(u64::from(Epoch(5).starting_height().0))),
                 offset: (None, None),
               }),
               mints: 0,
@@ -1491,7 +1491,7 @@ impl Index {
       .open_table(INSCRIPTION_ID_TO_OUTPOINTS)?
       .get(&inscription_id.store())?
       .map(|x| x.value())
-      .map(|x| Vec::<OutPoint>::load(x))
+      .map(Vec::<OutPoint>::load)
     else {
       return Ok(None);
     };
@@ -1500,8 +1500,7 @@ impl Index {
       .get_transactions(partial_txs.iter().map(|x| x.txid))?
       .into_iter()
       .zip(partial_txs.iter().map(|x| x.txid))
-      .map(|(tx, txid)| tx.map(|tx| (txid, tx)))
-      .flatten()
+      .filter_map(|(tx, txid)| tx.map(|tx| (txid, tx)))
       .collect::<HashMap<_, _>>();
 
     let scripts = partial_txs
@@ -2338,6 +2337,55 @@ impl Index {
           .map(|value| OutPoint::load(value.value()))
       })
       .collect()
+  }
+
+  pub fn get_address_runes(
+    &self,
+    address: &Address,
+  ) -> Result<Vec<(SpacedRune, Decimal, Option<char>)>> {
+    let v = self
+      .database
+      .begin_read()?
+      .open_multimap_table(SCRIPT_PUBKEY_TO_OUTPOINT)?
+      .get(address.script_pubkey().as_bytes())?
+      .map(|result| {
+        result
+          .map_err(|err| anyhow!(err))
+          .map(|value| OutPoint::load(value.value()))
+          .and_then(|outpoint| {
+            self
+              .get_rune_balances_for_output(outpoint)
+              .map_err(|err| anyhow!(err))
+          })
+      })
+      .collect::<Result<Vec<BTreeMap<SpacedRune, Pile>>>>()?;
+
+    let mut runes = BTreeMap::new();
+
+    for rune_balances in v {
+      for (spaced_rune, pile) in rune_balances {
+        runes
+          .entry(spaced_rune)
+          .and_modify(|(decimal, _symbol): &mut (Decimal, Option<char>)| {
+            assert_eq!(decimal.scale, pile.divisibility);
+            decimal.value += pile.amount;
+          })
+          .or_insert((
+            Decimal {
+              value: pile.amount,
+              scale: pile.divisibility,
+            },
+            pile.symbol,
+          ));
+      }
+    }
+
+    Ok(
+      runes
+        .into_iter()
+        .map(|(spaced_rune, (decimal, symbol))| (spaced_rune, decimal, symbol))
+        .collect(),
+    )
   }
 
   pub(crate) fn get_aggregated_rune_balances_for_outputs(
@@ -6053,13 +6101,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       let sat = entry.sat;
 
@@ -6087,13 +6131,9 @@ mod tests {
 
       assert_eq!(entry.inscription_number, 0);
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       assert_eq!(sat, entry.sat);
 
@@ -6117,13 +6157,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       assert_eq!(entry.inscription_number, -2);
 
@@ -6164,13 +6200,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       let sat = entry.sat;
 
@@ -6196,13 +6228,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       assert_eq!(entry.inscription_number, 1);
 
@@ -6228,13 +6256,9 @@ mod tests {
         .unwrap()
         .unwrap();
 
-      assert!(!Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Cursed));
+      assert!(!Charm::charms(entry.charms).contains(&Charm::Cursed));
 
-      assert!(Charm::charms(entry.charms)
-        .iter()
-        .any(|charm| *charm == Charm::Vindicated));
+      assert!(Charm::charms(entry.charms).contains(&Charm::Vindicated));
 
       assert_eq!(entry.inscription_number, 2);
 

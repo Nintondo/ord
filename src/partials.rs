@@ -112,7 +112,7 @@ impl InscriptionParser {
 
       sig_scripts = &sig_scripts[1..];
 
-      push_datas_vec = match Self::decode_push_datas(&sig_scripts[0]) {
+      push_datas_vec = match Self::decode_push_datas(sig_scripts[0]) {
         Some(push_datas) => push_datas,
         None => return ParsedInscription::None,
       };
@@ -228,7 +228,7 @@ impl InscriptionParser {
     let mut m: u64 = 0;
 
     for i in data {
-      n += (*i as u64) << m;
+      n += u64::from(*i) << m;
       m += 8;
     }
 
