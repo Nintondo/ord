@@ -1,9 +1,9 @@
-FROM rust:1.86.0-bookworm as builder
+FROM rust:1.92-trixie as builder
 
 WORKDIR /usr/src/app
 
 RUN apt update -y && \
-    apt install -y \
+    apt install -y --no-install-recommends \
     pkg-config \
     libssl-dev \
     git \
@@ -16,25 +16,41 @@ RUN apt update -y && \
 
 COPY . .
 
-RUN cargo fetch && cargo build --release
+RUN cargo fetch \
+  && cargo build --release
 
-RUN rm -rf ~/.cargo/git && \
-    rm -rf ~/.cargo/registry
+RUN rm -rf /usr/local/cargo/git && \
+    rm -rf /usr/local/cargo/registry
 
-FROM ubuntu:24.04 AS runner
+FROM debian:trixie-slim AS runner
 
-WORKDIR /app
+RUN apt update && \
+    apt install -y --no-install-recommends \
+        tini \
+        gosu \
+        curl \
+        libc6 \
+        libgcc-s1 \
+        ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
 
-RUN apt update -y && \
-    apt install -y curl openssl libc6 libgcc-s1 && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN groupadd --system --gid 1001 appuser \
+  && useradd --system --uid 1001 --gid appuser --home /home/appuser --shell /usr/sbin/nologin appuser \
+  && mkdir -p /home/appuser/.cache \
+  && chown -R 1001:1001 /home/appuser
+
+WORKDIR /app  
 
 COPY --from=builder /usr/src/app/target/release/ord ./ord
+
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 ENV RUST_BACKTRACE=1
 ENV RUST_LOG=info
 
 EXPOSE 3333
 
-ENTRYPOINT ["./ord"]
+ENTRYPOINT ["/usr/bin/tini", "--", "/entrypoint.sh"]
+CMD ["/app/ord"]
+
