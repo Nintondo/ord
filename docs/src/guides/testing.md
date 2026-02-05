@@ -19,6 +19,9 @@ to `env.json`.
 `env.json` contains the commands needed to invoke `bitcoin-cli` and `ord
 wallet`, as well as the ports `bitcoind` and `ord server` are listening on.
 
+`ord env` requires the `--ord-bin <PATH>` option to specify which `ord` binary
+to run.
+
 These can be extracted into shell commands using `jq`:
 
 ```shell

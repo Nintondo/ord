@@ -26,6 +26,12 @@ pub(crate) struct Env {
     help = "Proxy `/content/INSCRIPTION_ID` and other recursive endpoints to `<PROXY>` if the inscription is not present on current chain."
   )]
   pub(crate) proxy: Option<Url>,
+  #[arg(
+    long,
+    help = "Path to ord binary to run.",
+    value_name = "PATH"
+  )]
+  ord_bin: Option<PathBuf>,
 }
 
 #[derive(Serialize)]
@@ -38,6 +44,8 @@ struct Info {
 
 impl Env {
   pub(crate) fn run(self) -> SubcommandResult {
+    let ord = self.resolve_ord_bin()?;
+
     let bitcoind_port = TcpListener::bind("127.0.0.1:9000")
       .ok()
       .map(|listener| listener.local_addr().unwrap().port());
@@ -134,8 +142,6 @@ rpcport={bitcoind_port}
       )?;
     }
 
-    let ord = std::env::current_exe()?;
-
     let decompress = self.decompress;
     let proxy = self.proxy.map(|url| url.to_string());
 
@@ -209,7 +215,7 @@ rpcport={bitcoind_port}
         ord_port,
         bitcoin_cli_command: vec!["bitcoin-cli".into(), format!("-datadir={relative}")],
         ord_wallet_command: vec![
-          ord.to_str().unwrap().into(),
+          ord.to_string_lossy().into(),
           "--datadir".into(),
           absolute.to_str().unwrap().into(),
           "wallet".into(),
@@ -247,4 +253,48 @@ bitcoin-cli -datadir={datadir} getblockchaininfo
       thread::sleep(Duration::from_millis(100));
     }
   }
+
+  fn resolve_ord_bin(&self) -> Result<PathBuf> {
+    let Some(path) = &self.ord_bin else {
+      bail!("ord binary must be provided with --ord-bin");
+    };
+
+    Self::validate_ord_bin(path)
+  }
+
+  fn validate_ord_bin(path: &Path) -> Result<PathBuf> {
+    let canonical = fs::canonicalize(path)
+      .with_context(|| format!("ord binary `{}` does not exist", path.display()))?;
+
+    let metadata = fs::metadata(&canonical)
+      .with_context(|| format!("failed to read ord binary `{}`", canonical.display()))?;
+
+    ensure!(
+      metadata.is_file(),
+      "ord binary `{}` is not a file",
+      canonical.display()
+    );
+
+    #[cfg(unix)]
+    {
+      use std::os::unix::fs::PermissionsExt;
+
+      let mode = metadata.permissions().mode();
+
+      ensure!(
+        mode & 0o111 != 0,
+        "ord binary `{}` is not executable",
+        canonical.display()
+      );
+
+      ensure!(
+        mode & 0o022 == 0,
+        "ord binary `{}` is writable by group or others",
+        canonical.display()
+      );
+    }
+
+    Ok(canonical)
+  }
+
 }
