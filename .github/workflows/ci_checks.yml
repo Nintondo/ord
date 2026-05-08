@@ -1,4 +1,4 @@
-name: CI checks
+name: CI Checks
 
 on:
   workflow_dispatch:
@@ -21,30 +21,40 @@ jobs:
       contents: read
 
     steps:
-    - name: Determine scan ref
-      env:
-        INPUT_SHA: ${{ github.event.inputs.sha }}
-        GITHUB_SHA_REF: ${{ github.sha }}
-      run: |
-        if [ -n "$INPUT_SHA" ]; then
-          echo "SCAN_REF=$INPUT_SHA" >> "$GITHUB_ENV"
-        else
-          echo "SCAN_REF=$GITHUB_SHA_REF" >> "$GITHUB_ENV"
-        fi
+      - name: Determine commit SHA
+        shell: bash
+        env:
+          INPUT_SHA: ${{ github.event.inputs.sha }}
+          GITHUB_SHA_REF: ${{ github.sha }}
+        run: |
+          set -euo pipefail
 
-    - name: Checkout repository at selected commit
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ env.SCAN_REF }}
+          if [ -n "$INPUT_SHA" ]; then
+            echo "SCAN_REF=$INPUT_SHA" >> "$GITHUB_ENV"
+          else
+            echo "SCAN_REF=$GITHUB_SHA_REF" >> "$GITHUB_ENV"
+          fi
 
-    - name: Install Semgrep
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y python3-pip pipx
-        pipx ensurepath
-        pipx install semgrep || pipx upgrade semgrep
-        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - name: Checkout repository at selected commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ env.SCAN_REF }}
 
-    - name: Run Semgrep (p/ci)
-      continue-on-error: true
-      run: semgrep --config p/ci .
+      - name: Install Semgrep
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          sudo apt-get update
+          sudo apt-get install -y python3-pip pipx
+          pipx ensurepath
+          pipx install semgrep || pipx upgrade semgrep
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Report all (non-blocking)
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          semgrep --config p/ci .

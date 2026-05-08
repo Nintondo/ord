@@ -1,0 +1,62 @@
+name: Wipe service
+run-name: "Wipe → ${{ inputs.coin }}-${{ inputs.network }}"
+
+permissions:
+  contents: read
+
+on:
+  workflow_dispatch:
+    inputs:
+      coin:
+        description: Coin
+        required: true
+        type: choice
+        options:
+          - bells
+      network:
+        description: Network
+        required: true
+        type: choice
+        options:
+          - mainnet
+      confirm_wipe:
+        description: 'Type WIPE_MAINNET to confirm'
+        required: true
+        default: ''
+
+concurrency:
+  group: wipe-${{ inputs.coin }}-${{ inputs.network }}
+  cancel-in-progress: false
+
+jobs:
+  wipe:
+    runs-on: self-hosted
+    environment: ${{ inputs.coin }}-${{ inputs.network }}
+
+    steps:
+      - name: Validate explicit wipe confirmation
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [ "${{ inputs.confirm_wipe }}" != "WIPE_MAINNET" ]; then
+            echo "Wipe requires explicit confirmation."
+            echo "Re-run workflow_dispatch and set confirm_wipe=WIPE_MAINNET"
+            exit 1
+          fi
+
+      - name: Checkout repository for local actions
+        uses: actions/checkout@v5
+
+      - name: Wipe service
+        uses: ./.github/actions/wipe-over-ssh
+        with:
+          host: ${{ secrets.HOST_1 }}
+          username: ${{ secrets.HOST_1_USERNAME }}
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
+          service_name: ${{ vars.SERVICE_NAME }}
+          service_dirs: ${{ vars.SERVICE_DIR_1 }}
+          coin: ${{ vars.COIN }}
+          network: ${{ vars.NETWORK }}
+          post_wipe_sleep_seconds: "10"
+          reload_nginx: "true"
