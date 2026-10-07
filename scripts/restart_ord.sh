@@ -14,6 +14,8 @@ from pathlib import Path
 p = Path('/home/ord/ord_db')
 assert str(p.resolve()) == str(p) and p.stat().st_dev == Path('/home').stat().st_dev != Path('/opt').stat().st_dev
 c = json.loads(subprocess.check_output(['docker', 'inspect', 'bells-mainnet-ord']))[0]
+assert c['Config'].get('Healthcheck') and c['Config'].get('StopSignal') == 'SIGTERM', 'Shutdown-safe image required'
+assert c['State']['Running'] or (c['State']['ExitCode'] == 0 and not c['State']['OOMKilled']), 'Unclean previous exit requires review'
 assert any(m['Type'] == 'bind' and m['Source'] == str(p) and m['Destination'] == '/app/ord_db' and m['RW'] for m in c['Mounts'])
 PY
 if [ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER")" = true ]; then

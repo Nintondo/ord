@@ -84,9 +84,25 @@ PY_RUNTIME
 }
 
 stop_cleanly() {
-  local running deadline state
-  running=$(docker inspect -f '{{.State.Running}}' "$CONTAINER") || return 1
-  [ "$running" = true ] || return 0
+  local running deadline state containers
+  if ! running=$(docker inspect -f '{{.State.Running}}' "$CONTAINER" 2>/dev/null); then
+    # Compose may fail after removing the old container. If Docker is available
+    # and the name is absent, rollback can safely recreate it from the snapshot.
+    containers=$(docker ps -aq --filter "name=^/${CONTAINER}$") || return 1
+    [ -z "$containers" ] || return 1
+    return 0
+  fi
+  if [ "$running" != true ]; then
+    if [ -e /home/ord/ord_db/index.redb ]; then
+      state=$(docker inspect -f '{{.State.ExitCode}} {{.State.OOMKilled}}' "$CONTAINER") || return 1
+      if [ "$state" != '0 false' ]; then
+        touch "$TRANSACTION/shutdown-blocked"
+        echo 'Existing index follows an unclean exit; inspect it before restarting.' >&2
+        return 1
+      fi
+    fi
+    return 0
+  fi
   # Disable automatic restart while signalling; never let Compose escalate to KILL.
   docker update --restart=no "$CONTAINER" >/dev/null || return 1
   docker kill --signal=SIGTERM "$CONTAINER" >/dev/null || return 1

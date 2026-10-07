@@ -16,10 +16,13 @@ a = sys.argv[1:]
 with (p/'calls').open('a') as f: f.write(json.dumps(a)+'\\n')
 mode = os.environ['MODE']
 if a[0] == 'inspect':
+    if mode == 'absent': sys.exit(1)
     if '.State.Running' in a[2]:
         print('false' if mode == 'stopped' or (mode != 'stuck' and (p/'signalled').exists()) else 'true')
     else:
         print('137 true' if mode == 'oom' else '0 false')
+elif a[0] == 'ps':
+    print('')
 elif a[0] == 'kill':
     assert a[1:] == ['--signal=SIGTERM', 'bells-mainnet-ord']
     (p/'signalled').touch()
@@ -64,6 +67,12 @@ class StopTests(unittest.TestCase):
         result, _, blocked = self.run_stop('oom')
         self.assertNotEqual(result.returncode, 0)
         self.assertTrue(blocked)
+
+    def test_absent_container_allows_recovery_without_signals(self):
+        result, calls, blocked = self.run_stop('absent')
+        self.assertEqual(result.returncode, 0)
+        self.assertFalse(blocked)
+        self.assertFalse(any(c[0] in ['kill', 'rm', 'compose', 'start'] for c in calls))
 
     def test_previously_stopped_container_is_not_started(self):
         result, calls, blocked = self.run_stop('stopped')
