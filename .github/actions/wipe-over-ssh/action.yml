@@ -1,101 +1,37 @@
-name: Wipe over SSH
-description: Stop service container, remove on-disk service data dirs, and recreate.
+name: Reset Ord index over SSH
+description: Gracefully stop Ord and remove only index.redb on its separate /home disk.
 inputs:
   host:
-    description: SSH host for wipe operation.
+    description: SSH host
     required: true
   username:
-    description: SSH username.
+    description: SSH username
     required: true
   ssh_private_key:
-    description: SSH private key for authentication.
+    description: SSH private key
     required: true
-  service_name:
-    description: Service name (also subdir under services/).
+  base_path:
+    description: Canonical project directory
     required: true
-  service_dirs:
-    description: Space-separated list of subdirectories under SERVICE_PATH whose contents must be wiped.
+  service_path:
+    description: Canonical Ord service directory
     required: true
-  coin:
-    description: Base directory segment.
+  compose_project_name:
+    description: Existing Compose project name
     required: true
-  network:
-    description: Network suffix (testnet|mainnet).
-    required: true
-  post_wipe_sleep_seconds:
-    description: Sleep time after service recreation.
-    required: false
-    default: "10"
-  reload_nginx:
-    description: Whether to reload nginx after wipe.
-    required: false
-    default: "true"
 runs:
   using: composite
   steps:
-    - name: Wipe service
-      uses: appleboy/ssh-action@v1.0.0
+    - name: Reset only the Ord index
+      uses: appleboy/ssh-action@7eaf76671a0d7eec5d98ee897acda4f968735a17 # v1.2.0
       env:
-        SERVICE_NAME: ${{ inputs.service_name }}
-        SERVICE_DIRS: ${{ inputs.service_dirs }}
-        COIN: ${{ inputs.coin }}
-        NETWORK: ${{ inputs.network }}
-        POST_WIPE_SLEEP_SECONDS: ${{ inputs.post_wipe_sleep_seconds }}
-        RELOAD_NGINX: ${{ inputs.reload_nginx }}
+        BASE_PATH_INPUT: ${{ inputs.base_path }}
+        SERVICE_PATH_INPUT: ${{ inputs.service_path }}
+        COMPOSE_PROJECT_NAME_INPUT: ${{ inputs.compose_project_name }}
       with:
         host: ${{ inputs.host }}
         username: ${{ inputs.username }}
         key: ${{ inputs.ssh_private_key }}
-        envs: SERVICE_NAME,SERVICE_DIRS,COIN,NETWORK,POST_WIPE_SLEEP_SECONDS,RELOAD_NGINX
-        script: |
-          set -e
-
-          for var in SERVICE_NAME SERVICE_DIRS COIN NETWORK; do
-            if [ -z "${!var}" ]; then
-              echo "Error: Environment variable ${var} is not set."
-              exit 1
-            fi
-          done
-
-          BASE_PATH="/opt/${COIN}-${NETWORK}"
-          SERVICE_PATH="${BASE_PATH}/services/${SERVICE_NAME}"
-          CONTAINER="${COIN}-${NETWORK}-${SERVICE_NAME}"
-
-          if [ ! -d "${BASE_PATH}" ]; then
-            echo "Error: Base directory ${BASE_PATH} does not exist."
-            exit 1
-          fi
-
-          if [ ! -d "${SERVICE_PATH}" ]; then
-            echo "Error: Service directory ${SERVICE_PATH} does not exist."
-            exit 1
-          fi
-
-          cd "${BASE_PATH}"
-
-          if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER}$"; then
-            docker rm -f "${CONTAINER}"
-          else
-            echo "Warning: container ${CONTAINER} does not exist."
-          fi
-
-          for DIR in ${SERVICE_DIRS}; do
-            TARGET="${SERVICE_PATH}/${DIR}"
-            if [ -d "${TARGET}" ]; then
-              echo "Wiping ${TARGET}/"
-              rm -rf "${TARGET}"/*
-              rm -rf "${TARGET}"/.[!.]* "${TARGET}"/..?* 2>/dev/null || true
-            else
-              echo "Warning: directory ${TARGET} does not exist."
-            fi
-          done
-
-          docker compose up -d --force-recreate "${CONTAINER}"
-
-          if [ -n "${POST_WIPE_SLEEP_SECONDS}" ]; then
-            sleep "${POST_WIPE_SLEEP_SECONDS}"
-          fi
-
-          if [ "${RELOAD_NGINX}" = "true" ]; then
-            docker exec nginx nginx -s reload || true
-          fi
+        envs: BASE_PATH_INPUT,SERVICE_PATH_INPUT,COMPOSE_PROJECT_NAME_INPUT
+        script_path: ${{ github.action_path }}/wipe.sh
+        command_timeout: 25m

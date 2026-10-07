@@ -167,6 +167,8 @@ impl Server {
         .route("/address/:address/runes", get(Self::address_runes))
         .route("/block/:query", get(Self::block))
         .route("/blockcount", get(Self::block_count))
+        .route("/healthz", get(Self::health))
+        .route("/readyz", get(Self::ready))
         .route("/blockhash", get(Self::block_hash))
         .route("/blockhash/:height", get(Self::block_hash_from_height))
         .route("/blockheight", get(Self::block_height))
@@ -1134,6 +1136,31 @@ impl Server {
         })
         .into_response(),
       )
+    })
+  }
+
+  async fn health() -> StatusCode {
+    if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+      StatusCode::SERVICE_UNAVAILABLE
+    } else {
+      StatusCode::OK
+    }
+  }
+
+  // Readiness means the index can serve reads, not that initial sync is complete.
+  // These probes never update the index or create write transactions.
+  async fn ready(Extension(index): Extension<Arc<Index>>) -> StatusCode {
+    let indexer_failed = INDEXER
+      .lock()
+      .unwrap()
+      .as_ref()
+      .map_or(true, thread::JoinHandle::is_finished);
+    if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) || indexer_failed {
+      return StatusCode::SERVICE_UNAVAILABLE;
+    }
+    task::block_in_place(|| match index.status() {
+      Ok(status) if !status.unrecoverably_reorged => StatusCode::OK,
+      _ => StatusCode::SERVICE_UNAVAILABLE,
     })
   }
 

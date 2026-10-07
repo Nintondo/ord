@@ -77,7 +77,17 @@ impl<'index> Updater<'index> {
 
     let mut uncommitted = 0;
     let mut utxo_cache = HashMap::new();
-    while let Ok(block) = rx.recv() {
+    loop {
+      if SHUTTING_DOWN.load(atomic::Ordering::Relaxed) {
+        break;
+      }
+      // RPC retries must not keep a completed write transaction open forever
+      // after shutdown. Finish the current block and commit it below.
+      let block = match rx.recv_timeout(Duration::from_millis(100)) {
+        Ok(block) => block,
+        Err(std::sync::mpsc::RecvTimeoutError::Timeout) => continue,
+        Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => break,
+      };
       self.index_block(
         &mut output_sender,
         &mut txout_receiver,

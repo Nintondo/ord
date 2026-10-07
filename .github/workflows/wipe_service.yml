@@ -25,7 +25,7 @@ on:
         default: ''
 
 concurrency:
-  group: wipe-${{ inputs.coin }}-${{ inputs.network }}
+  group: deploy-${{ inputs.coin }}-${{ inputs.network }}
   cancel-in-progress: false
 
 jobs:
@@ -35,18 +35,20 @@ jobs:
 
     steps:
       - name: Validate explicit wipe confirmation
+        env:
+          CONFIRM_WIPE: ${{ inputs.confirm_wipe }}
         shell: bash
         run: |
           set -euo pipefail
 
-          if [ "${{ inputs.confirm_wipe }}" != "WIPE_MAINNET" ]; then
+          if [ "$CONFIRM_WIPE" != "WIPE_MAINNET" ]; then
             echo "Wipe requires explicit confirmation."
             echo "Re-run workflow_dispatch and set confirm_wipe=WIPE_MAINNET"
             exit 1
           fi
 
       - name: Checkout repository for local actions
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Wipe service
         uses: ./.github/actions/wipe-over-ssh
@@ -54,9 +56,6 @@ jobs:
           host: ${{ secrets.HOST_1 }}
           username: ${{ secrets.HOST_1_USERNAME }}
           ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
-          service_name: ${{ vars.SERVICE_NAME }}
-          service_dirs: ${{ vars.SERVICE_DIR_1 }}
-          coin: ${{ vars.COIN }}
-          network: ${{ vars.NETWORK }}
-          post_wipe_sleep_seconds: "10"
-          reload_nginx: "true"
+          base_path: ${{ vars.BASE_PATH }}
+          service_path: ${{ vars.SERVICE_DIR_1 }}
+          compose_project_name: ${{ vars.COMPOSE_PROJECT_NAME }}

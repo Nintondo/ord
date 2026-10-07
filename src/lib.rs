@@ -240,8 +240,11 @@ pub fn shut_down() {
 }
 
 fn gracefully_shut_down_indexer() {
-  if let Some(indexer) = INDEXER.lock().unwrap().take() {
-    shut_down();
+  shut_down();
+  // Only the main thread owns the join. Signal handling must not block or
+  // perform an immediate process exit while shutdown is in progress.
+  let indexer = INDEXER.lock().unwrap().take();
+  if let Some(indexer) = indexer {
     log::info!("Waiting for index thread to finish...");
     if indexer.join().is_err() {
       log::warn!("Index thread panicked; join failed");
@@ -254,18 +257,18 @@ pub fn main() {
 
   ctrlc::set_handler(move || {
     if SHUTTING_DOWN.fetch_or(true, atomic::Ordering::Relaxed) {
-      process::exit(1);
+      return;
     }
 
-    eprintln!("Shutting down gracefully. Press <CTRL-C> again to shutdown immediately.");
+    eprintln!("Shutting down gracefully; waiting for the index to commit and close.");
 
     LISTENERS
       .lock()
       .unwrap()
       .iter()
-      .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_millis(100))));
+      .for_each(|handle| handle.graceful_shutdown(Some(Duration::from_secs(30))));
 
-    gracefully_shut_down_indexer();
+    // Do not join here: main must wait for the indexer before exiting.
   })
   .expect("Error setting <CTRL-C> handler");
 
