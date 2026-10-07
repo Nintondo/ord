@@ -65,6 +65,8 @@ mod parse;
 mod runes;
 mod server;
 mod settings;
+#[cfg(unix)]
+mod shutdown;
 mod subsidy;
 mod supply;
 mod traits;

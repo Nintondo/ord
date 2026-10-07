@@ -1,4 +1,6 @@
-FROM rust:1.92-trixie as builder
+FROM rust:1.92-trixie AS source
+
+ARG CARGO_BUILD_JOBS=4
 
 WORKDIR /usr/src/app
 
@@ -10,14 +12,23 @@ RUN apt update -y && \
     build-essential \
     clang \
     libclang-dev \
-    protobuf-compiler && \
+    protobuf-compiler \
+    python3 && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
 COPY . .
 
-RUN cargo fetch \
-  && cargo build --release
+RUN cargo fetch --locked
+
+FROM source AS test
+RUN python3 scripts/check_deployment.py \
+  && python3 scripts/test_deployment.py \
+  && cargo test --locked --test integration shutdown -- --test-threads=1 \
+  && cargo test --locked --test integration info -- --test-threads=1
+
+FROM test AS builder
+RUN cargo build --locked --release
 
 RUN rm -rf /usr/local/cargo/git && \
     rm -rf /usr/local/cargo/registry
@@ -48,6 +59,11 @@ RUN chmod +x /entrypoint.sh
 
 ENV RUST_BACKTRACE=1
 ENV RUST_LOG=info
+
+COPY docker/healthcheck.sh /usr/local/bin/ord-healthcheck
+RUN chmod 755 /usr/local/bin/ord-healthcheck
+STOPSIGNAL SIGTERM
+HEALTHCHECK --interval=15s --timeout=5s --start-period=60s --retries=4 CMD ["/usr/local/bin/ord-healthcheck"]
 
 EXPOSE 3333
 

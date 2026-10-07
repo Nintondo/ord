@@ -36,7 +36,7 @@ jobs:
           fi
 
       - name: Checkout repository at selected commit
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           ref: ${{ env.SCAN_REF }}
 
@@ -58,3 +58,20 @@ jobs:
           set -euo pipefail
 
           semgrep --config p/ci .
+
+  shutdown-regression:
+    runs-on: self-hosted
+    timeout-minutes: 45
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout selected commit
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ inputs.sha || github.sha }}
+      - name: Check deployment contract
+        run: python3 scripts/check_deployment.py
+      - name: Test durable shutdown and reopening on Linux
+        env:
+          DOCKER_BUILDKIT: "1"
+        run: docker build --target test --tag ord-shutdown-test:${{ github.sha }} .

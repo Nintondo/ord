@@ -84,7 +84,7 @@ fn transactions() {
   .run_and_deserialize_output::<Vec<TransactionsOutput>>()
   .is_empty());
 
-  core.mine_blocks(10);
+  core.mine_blocks_with_subsidy(10, 2 * COIN_VALUE);
 
   let output = CommandBuilder::new(format!(
     "--index {} index info --transactions",
@@ -97,7 +97,7 @@ fn transactions() {
   assert_eq!(output[0].end, 1);
   assert_eq!(output[0].count, 1);
 
-  core.mine_blocks(10);
+  core.mine_blocks_with_subsidy(10, 2 * COIN_VALUE);
 
   let output = CommandBuilder::new(format!(
     "--index {} index info --transactions",

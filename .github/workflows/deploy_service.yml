@@ -43,6 +43,7 @@ concurrency:
 
 jobs:
   deployment:
+    timeout-minutes: 45
     runs-on: self-hosted
     if: github.event_name == 'workflow_dispatch' || (github.event.client_payload.coin == 'bells' && github.event.client_payload.network == 'mainnet')
     environment: ${{ github.event_name == 'workflow_dispatch' && format('{0}-{1}', inputs.coin, inputs.network) || format('{0}-{1}', github.event.client_payload.coin, github.event.client_payload.network) }}
@@ -58,22 +59,32 @@ jobs:
           exit 1
 
       - name: Validate explicit mainnet confirmation
+        env:
+          CONFIRM_MAINNET: ${{ inputs.confirm_mainnet }}
         if: github.event_name == 'workflow_dispatch' && inputs.network == 'mainnet'
         shell: bash
         run: |
           set -euo pipefail
 
-          if [ "${{ inputs.confirm_mainnet }}" != "DEPLOY_MAINNET" ]; then
+          if [ "$CONFIRM_MAINNET" != "DEPLOY_MAINNET" ]; then
             echo "Mainnet deploy requires explicit confirmation."
             echo "Re-run workflow_dispatch and set confirm_mainnet=DEPLOY_MAINNET"
             exit 1
           fi
 
       - name: Checkout repository for local actions
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
 
       - name: Resolve SERVICE_TAG
         uses: ./.github/actions/resolve-service-tag
+
+      - name: Checkout selected deployment commit
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+        with:
+          ref: ${{ env.SERVICE_TAG }}
+
+      - name: Validate selected deployment contract
+        run: python3 scripts/check_deployment.py
 
       - name: Log SERVICE_TAG
         shell: bash
@@ -113,19 +124,27 @@ jobs:
           ORD_BITCOIN_RPC_PASSWORD: ${{ secrets.ORD_BITCOIN_RPC_PASSWORD }}
           ORD_BITCOIN_RPC_URL: ${{ vars.ORD_BITCOIN_RPC_URL }}
           ORD_DATA_DIR: ${{ vars.ORD_DATA_DIR }}
+          ORD_INDEX_CACHE_SIZE: ${{ vars.ORD_INDEX_CACHE_SIZE }}
+          ORD_IMAGE: ${{ secrets.CI_REGISTRY }}/${{ secrets.CI_REGISTRY_REPO }}/${{ vars.SERVICE_NAME }}:${{ env.SERVICE_TAG }}
         run: |
           set -euo pipefail
 
+          umask 077
+          test "$ORD_DATA_DIR" = /app/ord_db
+          test -n "$ORD_BITCOIN_RPC_USERNAME"
+          test -n "$ORD_BITCOIN_RPC_PASSWORD"
+          [[ "$ORD_INDEX_CACHE_SIZE" =~ ^[1-9][0-9]*$ ]]
           envsubst < .env.template > .env.updated
+          envsubst '${ORD_IMAGE}' < docker/compose.template.yml > ord.yml.updated
 
       - name: Copy .env to server
-        uses: appleboy/scp-action@v1.0.0
+        uses: appleboy/scp-action@ff85246acaad7bdce478db94a363cd2bf7c90345 # v1.0.0
         with:
           host: ${{ secrets.HOST_1 }}
           username: ${{ secrets.HOST_1_USERNAME }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: ".env.updated"
-          target: "/opt/${{ vars.COIN }}-${{ vars.NETWORK }}/services/${{ vars.SERVICE_NAME }}"
+          source: ".env.updated,ord.yml.updated,scripts/restart_ord.sh"
+          target: "${{ vars.SERVICE_DIR_1 }}"
 
       - name: Deploy service
         uses: ./.github/actions/deploy-over-ssh
@@ -141,8 +160,12 @@ jobs:
           coin: ${{ vars.COIN }}
           network: ${{ vars.NETWORK }}
           env_updated_file: .env.updated
-          post_deploy_sleep_seconds: "10"
-          reload_nginx: "true"
+          base_path: ${{ vars.BASE_PATH }}
+          service_path: ${{ vars.SERVICE_DIR_1 }}
+          compose_project_name: ${{ vars.COMPOSE_PROJECT_NAME }}
+          health_timeout_seconds: "300"
+          public_health_url: ${{ vars.PUBLIC_HEALTH_URL }}
+          reload_nginx: "false"
 
       - name: Docker logout
         if: always()

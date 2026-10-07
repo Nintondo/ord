@@ -30,6 +30,15 @@ on:
       - 'src/**'
       - 'static/**'
       - 'Dockerfile'
+      - 'Cargo.toml'
+      - 'Cargo.lock'
+      - 'crates/**'
+      - 'templates/**'
+      - 'entrypoint.sh'
+      - 'docker/**'
+      - 'tests/**'
+      - '.github/**'
+      - 'scripts/**'
 
 concurrency:
   group: build-${{ github.ref }}
@@ -47,6 +56,7 @@ jobs:
         run: |
           set -euo pipefail
 
+          [[ -z "$INPUT_SHA" || "$INPUT_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "Full commit SHA required"; exit 1; }
           if [ -n "$INPUT_SHA" ]; then
             echo "SCAN_REF=$INPUT_SHA" >> "$GITHUB_ENV"
           else
@@ -54,7 +64,7 @@ jobs:
           fi
 
       - name: Checkout repository at selected commit
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           ref: ${{ env.SCAN_REF }}
 
@@ -92,6 +102,7 @@ jobs:
           semgrep --config p/rust --severity ERROR --error .
 
   build:
+    timeout-minutes: 60
     runs-on: self-hosted
     needs: semgrep-rust
     outputs:
@@ -106,6 +117,7 @@ jobs:
         run: |
           set -euo pipefail
 
+          [[ -z "$INPUT_SHA" || "$INPUT_SHA" =~ ^[a-f0-9]{40}$ ]] || { echo "Full commit SHA required"; exit 1; }
           if [ -n "$INPUT_SHA" ]; then
             echo "SERVICE_TAG=$INPUT_SHA" >> "$GITHUB_ENV"
             echo "service_tag=$INPUT_SHA" >> "$GITHUB_OUTPUT"
@@ -122,7 +134,7 @@ jobs:
           echo "Building image with SHA ${{ env.SERVICE_TAG }}"
 
       - name: Checkout repository at selected commit
-        uses: actions/checkout@v5
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           ref: ${{ env.SERVICE_TAG }}
 
@@ -149,8 +161,8 @@ jobs:
           set -euo pipefail
 
           IMAGE="${CI_REGISTRY}/${CI_REGISTRY_REPO}/${SERVICE_NAME}"
+          python3 scripts/check_deployment.py
           docker build \
-            --no-cache \
             --pull \
             --label "org.opencontainers.image.revision=${SERVICE_TAG}" \
             --label "org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}" \

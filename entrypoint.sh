@@ -4,7 +4,7 @@ set -e
 APP_UID="${APP_UID:-1001}"
 APP_GID="${APP_GID:-1001}"
 
-FIX_PERMS_DIRS="${FIX_PERMS_DIRS:-/app}"
+FIX_PERMS_DIRS="${FIX_PERMS_DIRS:-/app/ord_db}"
 
 RUN_AS="${RUN_AS:-$APP_UID:$APP_GID}"
 

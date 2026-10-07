@@ -1,0 +1,24 @@
+services:
+  bells-mainnet-ord:
+    image: ${ORD_IMAGE}
+    container_name: bells-mainnet-ord
+    restart: unless-stopped
+    stop_signal: SIGTERM
+    stop_grace_period: 15m
+    volumes:
+      - type: bind
+        source: /home/ord/ord_db
+        target: /app/ord_db
+        bind:
+          create_host_path: false
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+        compress: "true"
+    expose:
+      - "3333"
+    command: ["/app/ord", "server"]
+    env_file:
+      - .env

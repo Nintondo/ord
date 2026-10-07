@@ -12,3 +12,8 @@
 /target
 /test-times.txt
 /tmp
+/.git
+/.env
+/.env.updated
+/ord.yml.updated
+/*.log

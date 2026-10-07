@@ -1,8 +1,8 @@
 name: Resolve service tag
-description: Resolve SERVICE_TAG for workflow_dispatch or repository_dispatch runs.
+description: Select and validate the immutable commit SHA for deployment.
 inputs:
   log_ref:
-    description: Whether to log client_payload.ref for repository_dispatch.
+    description: Whether to log the dispatch source ref.
     required: false
     default: "true"
 runs:
@@ -10,22 +10,23 @@ runs:
   steps:
     - name: Resolve SERVICE_TAG
       shell: bash
+      env:
+        EVENT_NAME: ${{ github.event_name }}
+        INPUT_SHA: ${{ github.event.inputs.sha }}
+        DISPATCH_SHA: ${{ github.event.client_payload.sha }}
+        DISPATCH_REF: ${{ github.event.client_payload.ref }}
+        FALLBACK_SHA: ${{ github.sha }}
+        LOG_REF: ${{ inputs.log_ref }}
       run: |
         set -euo pipefail
-
-        if [ "${{ github.event_name }}" = "repository_dispatch" ]; then
-          if [ -n "${{ github.event.client_payload.sha }}" ]; then
-            echo "SERVICE_TAG=${{ github.event.client_payload.sha }}" >> "$GITHUB_ENV"
-          else
-            echo "SERVICE_TAG=${{ github.sha }}" >> "$GITHUB_ENV"
-          fi
-          if [ "${{ inputs.log_ref }}" = "true" ]; then
-            echo "Ref: ${{ github.event.client_payload.ref }}"
-          fi
+        if [ "$EVENT_NAME" = repository_dispatch ]; then
+          SERVICE_TAG="${DISPATCH_SHA:-$FALLBACK_SHA}"
+          if [ "$LOG_REF" = true ]; then printf 'Ref: %s\n' "$DISPATCH_REF"; fi
         else
-          if [ -n "${{ github.event.inputs.sha }}" ]; then
-            echo "SERVICE_TAG=${{ github.event.inputs.sha }}" >> "$GITHUB_ENV"
-          else
-            echo "SERVICE_TAG=${{ github.sha }}" >> "$GITHUB_ENV"
-          fi
+          SERVICE_TAG="${INPUT_SHA:-$FALLBACK_SHA}"
         fi
+        if ! [[ "$SERVICE_TAG" =~ ^[0-9a-f]{40}$ ]]; then
+          echo "::error::Deploy requires a full 40-character commit SHA"
+          exit 1
+        fi
+        printf 'SERVICE_TAG=%s\n' "$SERVICE_TAG" >> "$GITHUB_ENV"
