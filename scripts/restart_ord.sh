@@ -28,7 +28,8 @@ if [ "$(docker inspect -f '{{.State.Running}}' "$CONTAINER")" = true ]; then
   done
   [ "$(docker inspect -f '{{.State.ExitCode}} {{.State.OOMKilled}}' "$CONTAINER")" = '0 false' ] || { echo 'Unclean exit; restart aborted for review.'; exit 1; }
 fi
-docker compose -f "$BASE_PATH/docker-compose.yml" up -d --no-deps "$CONTAINER"
+# Recreate only after clean exit to restore the policy temporarily disabled above.
+docker compose -f "$BASE_PATH/docker-compose.yml" up -d --no-deps --force-recreate "$CONTAINER"
 deadline=$((SECONDS + 300))
 while [ "$SECONDS" -lt "$deadline" ]; do
   state=$(docker inspect -f '{{.State.Status}} {{.State.Health.Status}}' "$CONTAINER")
