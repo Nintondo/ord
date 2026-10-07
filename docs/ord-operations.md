@@ -10,7 +10,9 @@ via `http://bellscoin-mainnet:19918` on the existing shared Docker network.
 
 The only Ord index is `/home/ord/ord_db/index.redb`, bind-mounted at
 `/app/ord_db`. `/home` is a separate filesystem (`/dev/md3`); it must be mounted
-before Ord starts. Compose refuses to create a missing bind source. Deployment
+before Ord starts. Root and /home are separate RAID1 partitions on the same
+pair of physical NVMe drives; moving state to /home does not isolate physical I/O.
+Compose refuses to create a missing bind source. Deployment
 and maintenance scripts additionally check the actual filesystem and reject a
 symlinked state directory. App UID/GID are `1001:1001`.
 

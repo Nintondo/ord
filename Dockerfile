@@ -1,5 +1,7 @@
 FROM rust:1.92-trixie AS source
 
+ARG CARGO_BUILD_JOBS=4
+
 WORKDIR /usr/src/app
 
 RUN apt update -y && \
