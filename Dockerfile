@@ -1,4 +1,9 @@
+# syntax=docker/dockerfile:1.7
 FROM rust:1.92-trixie AS source
+
+COPY tools/ci/install_sccache.sh /tmp/install_sccache.sh
+RUN sh /tmp/install_sccache.sh && rm /tmp/install_sccache.sh
+COPY tools/ci/with_cargo_cache.sh /usr/local/bin/with-cargo-cache
 
 ARG CARGO_BUILD_JOBS=4
 
@@ -22,13 +27,15 @@ COPY . .
 RUN cargo fetch --locked
 
 FROM source AS test
-RUN python3 scripts/check_deployment.py \
+RUN --mount=type=secret,id=cargo_cache_env \
+    sh /usr/local/bin/with-cargo-cache sh -ec 'python3 scripts/check_deployment.py \
   && python3 scripts/test_deployment.py \
   && cargo test --locked --test integration shutdown -- --test-threads=1 \
-  && cargo test --locked --test integration info -- --test-threads=1
+  && cargo test --locked --test integration info -- --test-threads=1'
 
 FROM test AS builder
-RUN cargo build --locked --release
+RUN --mount=type=secret,id=cargo_cache_env \
+    sh /usr/local/bin/with-cargo-cache sh -ec 'cargo build --locked --release'
 
 RUN rm -rf /usr/local/cargo/git && \
     rm -rf /usr/local/cargo/registry

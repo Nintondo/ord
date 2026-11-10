@@ -74,4 +74,18 @@ jobs:
       - name: Test durable shutdown and reopening on Linux
         env:
           DOCKER_BUILDKIT: "1"
-        run: docker build --target test --tag ord-shutdown-test:${{ github.sha }} .
+        shell: bash
+        run: |
+          set -euo pipefail
+          cache_args=()
+          if [[ "${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository }}" == "true" ]]; then
+            for candidate in \
+              /opt/runner-hooks/cargo-cache/client.env \
+              /opt/runner-cache-hooks/cargo-cache/client.env; do
+              if [[ -r "$candidate" ]]; then
+                cache_args+=(--secret "id=cargo_cache_env,src=$candidate")
+                break
+              fi
+            done
+          fi
+          docker build "${cache_args[@]}" --target test --tag ord-shutdown-test:${{ github.sha }} .
